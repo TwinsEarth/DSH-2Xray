@@ -25,7 +25,10 @@ jobs:
         run: |
           NAME=$(node -p "require('./package.json').name")
           VERSION=$(node -p "require('./package.json').version")
-          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+          # Ask the registry instead of `npm view`: a scoped package's metadata
+          # check fails with ENEEDAUTH when no token is configured, which would
+          # block the idempotent skip.
+          if node -e "const n=process.argv[1],v=process.argv[2];fetch('https://registry.npmjs.org/'+encodeURIComponent(n).replace('%40','@')+'/'+v).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" "$NAME" "$VERSION"; then
             echo "$NAME@$VERSION is already published; skipping npm publish"
           else
             npm publish --access public
