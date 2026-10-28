@@ -73,7 +73,8 @@ const files = walk(ROOT)
 const outside = files.filter((file) => !isAllowed(file))
 check('every packaged file is allow-listed', outside.length === 0, outside.join(', ') || `${files.length} files`)
 
-for (const required of ['index.js', 'package.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'lib/supervisor.js', 'lib/control/grpc.js', 'locale/en.json', 'locale/zh.json', 'icon.svg']) {
+for (const required of ['index.js', 'package.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'lib/supervisor.js', 'lib/control/grpc.js',
+  'tools/launch-with-browser-proxy.cmd', 'locale/en.json', 'locale/zh.json', 'icon.svg']) {
   check(`required file ${required}`, files.includes(required))
 }
 

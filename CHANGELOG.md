@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.6 — 2026-10-29
+
+### 内置浏览器支持
+
+- 新增 `tools/launch-with-browser-proxy.cmd`：以 `--proxy-server=http://127.0.0.1:20808` 启动 DSH，让内置 Chromium 浏览器也走插件的 xray。
+- 设置页与插件页卡片增加说明：Node 插件无法在运行时修改 Chromium 的 session 代理，必须带启动参数重启；系统代理/TUN 是另一条全机路径。
+- 保留边界：插件仍只接管 DSH 进程内的 undici fetch。
+
 ## 0.2.5 — 2026-10-29
 
 ### 修复

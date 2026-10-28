@@ -328,6 +328,18 @@ v0.2.0 提供两个入口，互不替代：
 | 状态一直 `degraded` + `route-install-failed` | 查日志里的模块解析诊断；必要时确认 DSH 安装目录结构 |
 | `xray_switch_node` 报 `unknown service ... RoutingService` | xray 版本早于 2024-09；升级二进制，或关闭 `control.enabled` 只用 `activeNode` |
 
+## 内置浏览器（Chromium）
+
+DSH 内置浏览器走 Chromium 网络栈，不读 undici dispatcher，插件无法在运行时改它的代理。支持方式只有启动参数：
+
+```powershell
+& "E:\DS\DeepSeek Harness.exe" --proxy-server=http://127.0.0.1:20808
+```
+
+或运行 `tools/launch-with-browser-proxy.cmd`（自动查找 DSH 路径并透传 `--proxy-server`）。
+
+**必须先完全退出 DSH**：单实例再次启动只会聚焦旧窗口，不会应用参数。系统代理/TUN（v2rayN）也能让 Chromium 生效，但那是全机代理，与本插件无关。
+
 ## 开发
 
 ```powershell
