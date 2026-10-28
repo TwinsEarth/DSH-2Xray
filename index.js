@@ -158,6 +158,24 @@ export function apply(ctx, rawConfig) {
             }),
           'dsh-2xray: status api',
         )
+        child.effect(
+          () =>
+            child.connection.fetch.register({
+              path: '/api/xray/switch',
+              methods: ['POST'],
+              requestBody: 'buffered',
+              fetch: async (request) => {
+                try {
+                  const body = await request.json()
+                  const activeNode = await supervisor.switchNode(String(body?.node ?? ''))
+                  return Response.json({ ok: true, activeNode })
+                } catch (error) {
+                  return Response.json({ ok: false, error: String(error?.message ?? error) }, { status: 400 })
+                }
+              },
+            }),
+          'dsh-2xray: switch api',
+        )
       } catch (error) {
         logger.warn(`状态 API 注册失败：${String(error)}`)
       }
