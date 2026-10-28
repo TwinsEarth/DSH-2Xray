@@ -1,5 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { BinaryError, resolveBinary } from '../lib/binary.js'
 import { normalizeConfig } from '../lib/config.js'
@@ -89,6 +91,7 @@ test('a missing binary fails with every candidate listed', async () => {
           packageRoot,
           exists: () => false,
           launcher: {},
+          discoveryRoots: [],
         }),
       (error) => {
         assert.ok(error instanceof BinaryError)
@@ -99,5 +102,30 @@ test('a missing binary fails with every candidate listed', async () => {
     )
   } finally {
     process.env.PATH = previousPath
+  }
+})
+
+test('discovers a v2rayN layout when nothing else resolves', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-xray-discover-'))
+  const previousPath = process.env.PATH
+  try {
+    const layout = join(dir, 'v2rayN-windows-64', 'bin', 'xray')
+    mkdirSync(layout, { recursive: true })
+    writeFileSync(join(layout, 'xray.exe'), '')
+    process.env.PATH = ''
+    const found = await resolveBinary({
+      config: config(),
+      dataDir: join(dir, 'data'),
+      packageRoot: join(dir, 'plugin'),
+      exists: () => false,
+      launcher: {},
+      discoveryRoots: [dir],
+      discoveryOptions: { timeBudgetMs: 2000 },
+    })
+    assert.equal(found.source, 'discovered')
+    assert.ok(found.path.endsWith('xray.exe'))
+  } finally {
+    process.env.PATH = previousPath
+    rmSync(dir, { recursive: true, force: true })
   }
 })

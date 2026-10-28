@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.5 — 2026-10-29
+
+### 修复
+
+- **binary-missing 自动恢复**：未配置 `binary.path` 时，会按 `V2RAYN_HOME/V2RAYN_PATH`、`%LOCALAPPDATA%`、桌面/下载、Program Files、盘符根目录做有界搜索（只进入名字含 v2ray 的目录，3s 预算），识别 v2rayN 7.x 的 `bin/xray/xray.exe` 并直接借用。
+- 找不到时错误信息仍列出显式候选与 PATH，便于诊断。
+
 ## 0.2.4 — 2026-10-29
 
 ### 设置页与导入
