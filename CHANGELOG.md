@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0 — 2026-10-29
+
+### 新增
+
+- **插件设置页表单**：导出 Schemastery `Config`，在 DSH 插件页可直接编辑启用开关、vless 分享链接、xray 路径、本地端口、takeover、功能探测与控制面开关；保存后写入 profile patch，重启 DSH 生效。高级配置（`nodes`、`routing`、`noProxy` 等）由 Schemastery 原样保留。
+- **左侧菜单「2Xray」**：插件标签下方新增黑色地球图标入口，主面板内置二维码图片识别、屏幕共享扫码与链接复制。
+- **二维码导入工具** `tools/scanner.html`：浏览器打开后可粘贴/复制链接、选择二维码图片、或共享屏幕实时扫码；优先用 `BarcodeDetector`，不可用时回退到内置 jsQR。
+
+### 说明
+
+- `Config` 的字段全部为 volatile；volatile-only 变更不会重挂插件，插件会记录「重启 DSH 后生效」。
+- 设置页内的原生扫码按钮仍待客户端半边，当前扫码入口是 `tools/scanner.html`（结果复制回设置页）。
+
 ## 0.1.1 — 2026-10-29
 
 ### 修复

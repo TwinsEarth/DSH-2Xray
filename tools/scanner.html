@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH-2Xray · 二维码导入</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; font:15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background:#0f172a; color:#e2e8f0; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.hint { color:#94a3b8; margin:0 0 24px; font-size:13px; }
+  section { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:16px; margin-bottom:16px; }
+  h2 { font-size:15px; margin:0 0 10px; color:#f8fafc; }
+  textarea { width:100%; box-sizing:border-box; min-height:84px; resize:vertical; background:#0b1220; color:#e2e8f0; border:1px solid #334155; border-radius:8px; padding:10px; font:13px/1.5 ui-monospace, Consolas, monospace; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  button { appearance:none; border:1px solid #334155; background:#334155; color:#e2e8f0; border-radius:8px; padding:8px 14px; font-size:14px; cursor:pointer; }
+  button.primary { background:#2563eb; border-color:#2563eb; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  input[type=file] { color:#cbd5e1; }
+  video { width:100%; max-height:320px; border-radius:8px; background:#000; margin-top:12px; display:none; }
+  #status { font-size:13px; color:#94a3b8; margin-top:10px; min-height:20px; }
+  #status.error { color:#f87171; }
+  #status.ok { color:#4ade80; }
+  .badge { font-size:11px; color:#94a3b8; border:1px solid #334155; border-radius:999px; padding:1px 8px; margin-left:8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DSH-2Xray · 二维码导入</h1>
+  <p class="hint">把二维码里的 <code>vless://</code> 文本取出来，粘贴到 DSH 插件设置页的「分享链接」字段。</p>
+
+  <section>
+    <h2>1. 导入分享链接</h2>
+    <textarea id="link" placeholder="vless://uuid@host:443?security=reality&sni=...&pbk=...#备注"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="copy">复制链接</button>
+      <span id="copyState" class="hint" style="margin:0"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 二维码图片 <span class="badge" id="imgEngine">检测引擎…</span></h2>
+    <input type="file" id="file" accept="image/*">
+  </section>
+
+  <section>
+    <h2>3. 扫描屏幕上的二维码</h2>
+    <div class="row">
+      <button class="primary" id="screen">开始扫描屏幕</button>
+      <button id="stop" disabled>停止</button>
+    </div>
+    <video id="video" playsinline muted></video>
+    <div id="status"></div>
+  </section>
+</main>
+
+<script src="./jsQR.js"></script>
+<script>
+(() => {
+  const link = document.getElementById('link')
+  const status = document.getElementById('status')
+  const copyState = document.getElementById('copyState')
+  const imgEngine = document.getElementById('imgEngine')
+  const video = document.getElementById('video')
+  const fileInput = document.getElementById('file')
+  const screenBtn = document.getElementById('screen')
+  const stopBtn = document.getElementById('stop')
+  let stream = null
+  let timer = null
+
+  const say = (text, kind = '') => { status.textContent = text; status.className = kind }
+
+  const detector = 'BarcodeDetector' in window
+    ? new BarcodeDetector({ formats: ['qr_code'] })
+    : null
+  imgEngine.textContent = detector ? 'BarcodeDetector' : (window.jsQR ? 'jsQR 兜底' : '不可用')
+
+  function accept(text) {
+    const value = String(text || '').trim()
+    if (!value) return false
+    link.value = value
+    say('已识别二维码：' + value.slice(0, 60) + (value.length > 60 ? '…' : ''), 'ok')
+    link.focus()
+    link.select()
+    return true
+  }
+
+  async function decodeCanvas(canvas) {
+    if (detector) {
+      const codes = await detector.detect(canvas)
+      if (codes && codes.length > 0) return codes[0].rawValue
+    }
+    if (window.jsQR) {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const code = window.jsQR(data.data, data.width, data.height, { inversionAttempts: 'dontInvert' })
+      if (code && code.data) return code.data
+    }
+    return null
+  }
+
+  async function decodeImage(file) {
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    return decodeCanvas(canvas)
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files && fileInput.files[0]
+    if (!file) return
+    say('正在解析图片…')
+    try {
+      const text = await decodeImage(file)
+      if (!text) say('图片里没有识别到二维码，换一张更清晰/更大的图片。', 'error')
+      else accept(text)
+    } catch (error) {
+      say('解析失败：' + error.message, 'error')
+    }
+  })
+
+  async function tick() {
+    if (!stream) return
+    if (video.readyState < 2) return
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    if (!canvas.width || !canvas.height) return
+    canvas.getContext('2d').drawImage(video, 0, 0)
+    try {
+      const text = await decodeCanvas(canvas)
+      if (text) {
+        accept(text)
+        await stop()
+      }
+    } catch {
+      // keep scanning; a frame that fails to decode is normal
+    }
+  }
+
+  async function stop() {
+    if (timer) { clearInterval(timer); timer = null }
+    if (stream) {
+      for (const track of stream.getTracks()) track.stop()
+      stream = null
+    }
+    video.srcObject = null
+    video.style.display = 'none'
+    screenBtn.disabled = false
+    stopBtn.disabled = true
+    say('已停止屏幕扫描')
+  }
+
+  screenBtn.addEventListener('click', async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      say('当前浏览器不支持屏幕捕获；请改用「二维码图片」。', 'error')
+      return
+    }
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 10 }, audio: false })
+      video.srcObject = stream
+      video.style.display = 'block'
+      await video.play()
+      screenBtn.disabled = true
+      stopBtn.disabled = false
+      say('请把二维码放到共享屏幕上，正在识别…（选择“共享整个屏幕”或包含二维码的窗口）')
+      timer = setInterval(tick, 350)
+      stream.getVideoTracks()[0].addEventListener('ended', stop)
+    } catch (error) {
+      say('屏幕共享未开始：' + error.message, 'error')
+    }
+  })
+
+  stopBtn.addEventListener('click', stop)
+
+  document.getElementById('copy').addEventListener('click', async () => {
+    const value = link.value.trim()
+    if (!value) { say('还没有链接可复制。', 'error'); return }
+    try {
+      await navigator.clipboard.writeText(value)
+      copyState.textContent = '已复制'
+      setTimeout(() => { copyState.textContent = '' }, 1500)
+    } catch {
+      link.focus(); link.select()
+      copyState.textContent = '请按 Ctrl+C 复制'
+    }
+  })
+})()
+</script>
+</body>
+</html>

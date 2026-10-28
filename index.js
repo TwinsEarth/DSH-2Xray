@@ -10,6 +10,19 @@ import { installTools } from './lib/tools.js'
 export const name = 'dsh-2xray'
 
 /**
+ * Settings schema, exported only when the harness copy of Schemastery is
+ * resolvable (it lives beside the plugin in the profile). Without it the plugin
+ * keeps working from YAML config; the Plugins page simply shows no form.
+ */
+let Config
+try {
+  ;({ Config } = await import('./lib/schema.js'))
+} catch {
+  Config = undefined
+}
+export { Config }
+
+/**
  * Host half of dsh-2xray: it supervises one xray-core child process and
  * points the harness' process-global proxy policy at the local inbound.
  *
@@ -27,6 +40,15 @@ export function apply(ctx, rawConfig) {
   const { config, errors, warnings } = normalizeConfig(rawConfig)
 
   for (const warning of warnings) logger.warn(`配置警告：${warning}`)
+
+  // Volatile-only settings writes do not remount the fiber; the value is in the
+  // profile patch and takes effect on the next start or plugin reload.
+  if (typeof ctx.on === 'function') {
+    ctx.on('loader/volatile-update', (paths) => {
+      const changed = Array.isArray(paths) ? paths.join(', ') : String(paths ?? '')
+      logger.info(`设置已保存（${changed}）；重启 DSH 后生效`)
+    })
+  }
 
   let dataDir
   try {

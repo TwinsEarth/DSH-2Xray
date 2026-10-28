@@ -6,6 +6,7 @@ lib/control/*.js
 locale/*.json
 icon.svg
 bin/README.md
+tools/*
 README.md
 CHANGELOG.md
 LICENSE
