@@ -45,12 +45,12 @@ test('the client bundle registers a main panel and a sidebar entry', async () =>
 
   assert.deepEqual(
     registrations.map((entry) => entry.definition.name),
-    ['main', 'sidebar.panellist'],
+    ['sidebar.panellist', 'main'],
   )
-  assert.equal(registrations[0].definition.key, 'xray')
-  assert.equal(registrations[1].definition.id, 'xray')
-  assert.equal(registrations[1].definition.order, 1)
-  assert.equal(registrations[1].definition.label(), '2Xray')
-  const icon = registrations[1].component()
+  assert.equal(registrations[0].definition.id, 'xray')
+  assert.equal(registrations[0].definition.order, 1)
+  assert.equal(registrations[0].definition.label(), '2Xray')
+  const icon = registrations[0].component()
   assert.equal(icon.type, 'svg')
+  assert.equal(registrations[1].definition.key, 'xray')
 })

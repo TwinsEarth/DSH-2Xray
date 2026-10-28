@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 — 2026-10-29
+
+### 修复
+
+- **设置页仍不显示**：Schemastery 改为优先通过 `createRequire(import.meta.url)` / profile 锚点解析文件后动态 import，绕开宿主模块加载器对裸 specifier 的受限解析；加载结果写入 `xray_status.settingsSchema`，可远程确认表单是否具备渲染条件。
+- **侧边栏入口优先注册**：先注册 `sidebar.panellist`，再注册主面板；主面板失败不再连带隐藏入口。
+
 ## 0.2.0 — 2026-10-29
 
 ### 新增

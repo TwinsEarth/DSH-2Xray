@@ -90,6 +90,7 @@ export function apply(ctx, rawConfig) {
     launcher,
     route,
     control,
+    schemaLoaded: Boolean(Config),
     logger,
     dataDir,
   })
