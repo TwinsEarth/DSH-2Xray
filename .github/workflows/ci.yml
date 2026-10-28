@@ -16,6 +16,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: unit tests
-        run: node --test --test-isolation=none test/*.test.js
+        run: node --test test/
       - name: release self-check
         run: node scripts/release-check.mjs
