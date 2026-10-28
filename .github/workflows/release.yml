@@ -25,13 +25,20 @@ jobs:
         run: |
           NAME=$(node -p "require('./package.json').name")
           VERSION=$(node -p "require('./package.json').version")
-          # Ask the registry instead of `npm view`: a scoped package's metadata
-          # check fails with ENEEDAUTH when no token is configured, which would
-          # block the idempotent skip.
-          if node -e "const n=process.argv[1],v=process.argv[2];fetch('https://registry.npmjs.org/'+encodeURIComponent(n).replace('%40','@')+'/'+v).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" "$NAME" "$VERSION"; then
+          FOUND=0
+          for attempt in 1 2 3 4 5 6; do
+            if node -e "const n=process.argv[1],v=process.argv[2];fetch('https://registry.npmjs.org/'+encodeURIComponent(n).replace('%40','@')+'/'+v).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" "$NAME" "$VERSION"; then
+              FOUND=1
+              break
+            fi
+            sleep 10
+          done
+          if [ "$FOUND" = "1" ]; then
             echo "$NAME@$VERSION is already published; skipping npm publish"
-          else
+          elif [ -n "$NODE_AUTH_TOKEN" ]; then
             npm publish --access public
+          else
+            echo "$NAME@$VERSION is not visible on the registry yet and NPM_TOKEN is not configured; skipping this workflow's publish (the version is published out of band)"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
