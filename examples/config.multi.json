@@ -1,0 +1,46 @@
+{
+  "enabled": true,
+  "nodes": [
+    {
+      "id": "hk-01",
+      "address": "hk.example.com",
+      "port": 443,
+      "uuid": "11111111-2222-4333-8444-555555555555",
+      "flow": "xtls-rprx-vision",
+      "serverName": "www.example.com",
+      "password": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "shortId": "ab12",
+      "fingerprint": "chrome",
+      "spiderX": "/",
+      "network": "raw",
+      "security": "reality"
+    },
+    {
+      "id": "jp-01",
+      "address": "jp.example.com",
+      "port": 443,
+      "uuid": "11111111-2222-4333-8444-555555555555",
+      "flow": "xtls-rprx-vision",
+      "serverName": "www.example.com",
+      "password": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "shortId": "ab12",
+      "fingerprint": "chrome",
+      "spiderX": "/",
+      "network": "raw",
+      "security": "reality"
+    }
+  ],
+  "activeNode": "hk-01",
+  "inbound": {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": 20808
+  },
+  "control": {
+    "enabled": true,
+    "host": "127.0.0.1",
+    "port": 10085,
+    "stats": true
+  },
+  "takeover": "auto"
+}

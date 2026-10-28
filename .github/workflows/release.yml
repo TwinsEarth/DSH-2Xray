@@ -1,0 +1,44 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+      - name: unit tests
+        run: node --test --test-isolation=none test/*.test.js
+      - name: release self-check
+        run: node scripts/release-check.mjs
+      - name: publish to npm (skip when the version already exists)
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already published; skipping npm publish"
+          else
+            npm publish --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: pack and checksum
+        run: |
+          mkdir -p dist
+          npm pack --pack-destination dist
+          cd dist && sha256sum *.tgz > SHA256SUMS
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

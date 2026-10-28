@@ -1,0 +1,39 @@
+{
+  "enabled": true,
+  "nodes": [
+    {
+      "id": "hk-01",
+      "address": "hk.example.com",
+      "port": 443,
+      "uuid": "11111111-2222-4333-8444-555555555555",
+      "flow": "",
+      "network": "tcp",
+      "security": "none"
+    },
+    {
+      "id": "jp-01",
+      "address": "jp.example.com",
+      "port": 443,
+      "uuid": "11111111-2222-4333-8444-555555555555",
+      "flow": "",
+      "network": "tcp",
+      "security": "none"
+    }
+  ],
+  "activeNode": "hk-01",
+  "inbound": {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": 20808
+  },
+  "control": {
+    "enabled": true,
+    "host": "127.0.0.1",
+    "port": 10085,
+    "stats": true
+  },
+  "functionalProbe": {
+    "enabled": false
+  },
+  "takeover": "off"
+}

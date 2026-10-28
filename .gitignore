@@ -1,0 +1,4 @@
+bin/xray
+bin/xray.exe
+bin/*.zip
+.tmp/

@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "server": {
+    "address": "example.com",
+    "port": 443,
+    "uuid": "11111111-2222-4333-8444-555555555555",
+    "flow": "",
+    "serverName": "",
+    "network": "tcp",
+    "security": "none"
+  },
+  "inbound": {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": 20808
+  },
+  "functionalProbe": {
+    "enabled": false
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Xray 代理",
+    "description": "托管 xray-core 子进程，并把 DSH 进程内的全局 HTTP(S) 流量导入它的本地入站。"
+  }
+}

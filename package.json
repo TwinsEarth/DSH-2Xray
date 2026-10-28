@@ -1,0 +1,44 @@
+{
+  "name": "@twinsearth/dsh-2xray",
+  "version": "0.1.1",
+  "private": false,
+  "description": "DSH-2Xray: supervises xray-core and routes DSH process-wide HTTP(S) traffic through its local inbound, with optional multi-node gRPC control plane",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "lib/*.js",
+    "lib/control/*.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "bin/*",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "docs/*.md",
+    "examples/*.json",
+    "scripts/*.mjs",
+    "test/*.js"
+  ],
+  "scripts": {
+    "test": "node --test --test-isolation=none test/*.test.js",
+    "check": "node scripts/release-check.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+# dsh-2xray: one xray-core child process plus the harness' proxy policy.
+#
+# 1. Put the xray binary at <DSH_HOME>/xray-proxy/bin/xray(.exe), or set
+#    binary.path, or expose `xray` on PATH.
+# 2. Fill server.* below, then set enabled: true.
+# 3. The row's config is a complete block: a later profile-level patch replaces
+#    it wholesale, so restate any field you want to keep.
+- insert:
+    - id: xray-proxy
+      name: '@twinsearth/dsh-2xray'
+      config:
+        enabled: false
+        # server:
+        #   address: example.com
+        #   port: 443
+        #   uuid: 00000000-0000-0000-0000-000000000000
+        #   flow: xtls-rprx-vision
+        #   serverName: www.example.com
+        #   password: REPLACE_WITH_43_CHAR_BASE64URL_X25519_PUBLIC_KEY
+        #   shortId: ''
+        #   fingerprint: chrome
+        #   spiderX: /
+        #   network: raw
+        #   security: reality
+        # inbound:
+        #   protocol: http
+        #   host: 127.0.0.1
+        #   port: 20808
+        # takeover: auto
+        #
+        # Multi-node + runtime switching (needs Xray 2024-09+):
+        # nodes:
+        #   - { id: hk-01, address: hk.example.com, port: 443, uuid: ..., flow: xtls-rprx-vision,
+        #       serverName: www.example.com, password: ..., shortId: '' }
+        #   - { id: jp-01, address: jp.example.com, ... }
+        # activeNode: hk-01
+        # control: { enabled: true, port: 10085, stats: true }

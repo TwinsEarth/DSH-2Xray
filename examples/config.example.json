@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "server": {
+    "address": "example.com",
+    "port": 443,
+    "uuid": "00000000-0000-0000-0000-000000000000",
+    "flow": "xtls-rprx-vision",
+    "serverName": "www.example.com",
+    "password": "REPLACE_WITH_43_CHAR_BASE64URL_X25519_PUBLIC_KEY",
+    "shortId": "",
+    "fingerprint": "chrome",
+    "spiderX": "/",
+    "network": "raw",
+    "security": "reality"
+  },
+  "inbound": {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": 20808
+  },
+  "takeover": "auto"
+}

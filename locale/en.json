@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Xray Proxy",
+    "description": "Supervises an xray-core child process and routes the harness' global HTTP(S) traffic through its local inbound."
+  }
+}

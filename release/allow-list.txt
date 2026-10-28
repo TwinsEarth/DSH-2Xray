@@ -1,0 +1,15 @@
+index.js
+package.json
+cordis.patch.yml
+lib/*.js
+lib/control/*.js
+locale/*.json
+icon.svg
+bin/README.md
+README.md
+CHANGELOG.md
+LICENSE
+docs/*.md
+examples/*.json
+scripts/*.mjs
+test/*.js
