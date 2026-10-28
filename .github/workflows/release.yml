@@ -18,7 +18,7 @@ jobs:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
       - name: unit tests
-        run: node --test test/
+        run: node --test test/*.test.js
       - name: release self-check
         run: node scripts/release-check.mjs
       - name: publish to npm (skip when the version already exists)
