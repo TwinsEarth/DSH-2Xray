@@ -6,6 +6,8 @@ import { createLogger } from './lib/log.js'
 import { resolveDataDir } from './lib/paths.js'
 import { ControlClient } from './lib/control/client.js'
 import { installTools } from './lib/tools.js'
+import { LogBuffer } from './lib/logbuf.js'
+import { Monitor } from './lib/monitor.js'
 
 export const name = 'dsh-2xray'
 
@@ -36,7 +38,23 @@ export { Config }
  * disposer returned from `apply` are the lifecycle seam.
  */
 export function apply(ctx, rawConfig) {
-  const logger = createLogger(ctx)
+  const ring = new LogBuffer(1000)
+  const baseLogger = createLogger(ctx)
+  const logger = {
+    info: (...args) => {
+      ring.append('info', args.join(' '))
+      baseLogger.info(...args)
+    },
+    warn: (...args) => {
+      ring.append('warn', args.join(' '))
+      baseLogger.warn(...args)
+    },
+    error: (...args) => {
+      ring.append('error', args.join(' '))
+      baseLogger.error(...args)
+    },
+    debug: (...args) => baseLogger.debug(...args),
+  }
   const { config, errors, warnings } = normalizeConfig(rawConfig)
 
   for (const warning of warnings) logger.warn(`配置警告：${warning}`)
@@ -94,6 +112,57 @@ export function apply(ctx, rawConfig) {
     logger,
     dataDir,
   })
+
+  const monitor = new Monitor({
+    host: config.inbound.host,
+    port: config.inbound.port,
+    latencyUrl: config.functionalProbe.url,
+    logger,
+  })
+
+  // Authenticated status/log feed for the browser panel. Optional service: a
+  // profile without `connection` keeps the proxy and the tools, it only loses
+  // the live panel data.
+  if (typeof ctx.inject === 'function') {
+    ctx.inject(['connection'], (child) => {
+      try {
+        child.effect(
+          () =>
+            child.connection.fetch.register({
+              path: '/api/xray/status',
+              methods: ['GET'],
+              requestBody: 'buffered',
+              fetch: (request) => {
+                const url = new URL(request.url)
+                const after = Number(url.searchParams.get('after') ?? 0) || 0
+                const snapshot = supervisor.snapshot()
+                const proxied = snapshot.state === 'ready' && snapshot.route?.installed === true
+                monitor.maybeRefresh({ ready: proxied })
+                const node = snapshot.nodes?.find((entry) => entry.tag === snapshot.activeNode)
+                const page = ring.since(after)
+                const body = JSON.stringify({
+                  ok: true,
+                  status: {
+                    ...snapshot,
+                    proxied,
+                    vpnName: node?.id ?? snapshot.activeNode ?? null,
+                    probe: monitor.snapshot(),
+                  },
+                  logs: page.items,
+                  cursor: page.cursor,
+                })
+                return new Response(body, {
+                  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+                })
+              },
+            }),
+          'dsh-2xray: status api',
+        )
+      } catch (error) {
+        logger.warn(`状态 API 注册失败：${String(error)}`)
+      }
+    })
+  }
 
   const dispose = ctx.effect(
     () => async () => {

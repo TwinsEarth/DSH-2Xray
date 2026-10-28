@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.2 — 2026-10-29
+
+### 新增
+
+- **界面三段式重做**：左侧「2Xray」面板改为「当前 VPN 配置 / 实时连接日志 / 状态栏（延迟 · VPN 名称 · 出口 IP）」。
+- **设置页卡片**：客户端注册 `plugins.item` 卡片（分享链接、启用、takeover、xray 路径、端口），解决 DSH 不会自动渲染表单的问题；侧边栏面板与设置卡片共用同一配置。
+- **Host 状态通道**：`/api/xray/status`（经 `ctx.connection.fetch` 鉴权围栏）返回快照 + 日志环 + 延迟/出口 IP；日志 1000 条环缓冲、按 cursor 增量拉取。
+- **延迟/出口探测**：经本地入站 absolute-form 请求，仅接管后运行，30s/10min TTL，单飞。
+
+### 修复
+
+- 功能探测失败不再杀进程：改为 `degraded(probe-failed)`，健康循环重试并自动接管。
+- 默认探测目标从 gstatic 改为 `cp.cloudflare.com/generate_204`，避免大陆网络误判。
+- `xray_status` 增加 `settingsSchema`，可远程确认宿主是否加载了设置表单 schema。
+
 ## 0.2.1 — 2026-10-29
 
 ### 修复

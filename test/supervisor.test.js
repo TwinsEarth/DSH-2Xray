@@ -523,3 +523,35 @@ test('validateConfig reports a missing binary instead of throwing', async () => 
   }
 })
 
+test('a failing functional probe degrades but keeps the process alive', async () => {
+  const { dir, cleanup } = workdir()
+  try {
+    const config = makeConfig({ functionalProbe: { enabled: true, url: 'http://probe.invalid/', timeoutMs: 1000 } })
+    const log = []
+    const ready = readyProbes(log)
+    const { supervisor, route, launcher } = makeSupervisor({
+      dataDir: dir,
+      config,
+      log,
+      probes: {
+        async portIsFree() {
+          return true
+        },
+        waitForPort: ready.waitForPort,
+        async httpProxyProbe() {
+          return { ok: false, status: 502 }
+        },
+      },
+    })
+    await supervisor.start()
+    const snap = await supervisor.waitFor((s) => s.state === 'degraded')
+    assert.equal(snap.reason, 'probe-failed')
+    assert.equal(snap.process.alive, true)
+    assert.equal(route.installCalls, 0)
+    assert.equal(launcher.runs.length, 1)
+    await supervisor.stop()
+  } finally {
+    cleanup()
+  }
+})
+
