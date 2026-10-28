@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.4 — 2026-10-29
+
+### 设置页与导入
+
+- **设置页新增「2Xray」标签页**（`settings.section`）：VLESS 链接输入、本地二维码图片选择、屏幕扫码、启用/takeover/xray 路径/端口，保存后重启生效。
+- 插件页卡片 `plugins.item` 的 id 改为 settings namespace（`xray-proxy`），并按页面真实契约使用 `{ state, mutate }`；写冲突（mutate=false）会显式报错，不再假装保存成功。
+- 左侧「2Xray」面板保持三卡片（配置/实时信息/状态）。
+
+### 兼容
+
+- 路由直连规则从 `geoip:private` 改为显式私有网段（10/8、172.16/12、192.168/16、127/8、169.254/16、::1、fc00::/7、fe80::/10），不再依赖 xray 二进制旁的 `geoip.dat`——v2rayN 自带的 xray.exe 可 `-test` 通过。
+
 ## 0.2.3 — 2026-10-29
 
 ### 界面

@@ -82,7 +82,9 @@ test('direct and block outbounds exist and the catch-all goes to proxy', () => {
 test('private addresses and internal suffixes are routed direct', () => {
   const built = buildXrayConfig(config({ root: { routing: { bypassDomains: ['lan', 'corp'] } } }))
   const ipRule = built.routing.rules.find((rule) => rule.ip)
-  assert.deepEqual(ipRule.ip, ['geoip:private'])
+  assert.ok(ipRule.ip.includes('10.0.0.0/8'))
+  assert.ok(ipRule.ip.includes('192.168.0.0/16'))
+  assert.equal(ipRule.ip.includes('geoip:private'), false)
   const domainRule = built.routing.rules.find((rule) => rule.domain && rule.domain.some((entry) => entry.startsWith('domain:lan')))
   assert.deepEqual(domainRule.domain, ['domain:lan', 'domain:corp'])
 })

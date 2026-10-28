@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-test('the client bundle registers a main panel and a sidebar entry', async () => {
+test('the client bundle registers sidebar, main panel and settings entries', async () => {
   let captured
   globalThis.window = { __ModuleLoader__: { load(module) { captured = module } } }
   try {
@@ -24,10 +24,11 @@ test('the client bundle registers a main panel and a sidebar entry', async () =>
   })
 
   assert.equal(typeof mod.apply, 'function')
-  assert.deepEqual(mod.inject, ['slots', 'locale'])
+  assert.deepEqual(mod.inject, ['slots'])
   assert.equal(mod.PANEL_ID, 'xray')
+  assert.equal(mod.NS, 'xray-proxy')
 
-  const registrations = []
+  const base = []
   const ctx = {
     effect(fn) {
       fn()
@@ -37,20 +38,64 @@ test('the client bundle registers a main panel and a sidebar entry', async () =>
         callback()
       },
       register(definition, component) {
-        registrations.push({ definition, component })
+        base.push({ definition, component })
       },
     },
   }
   mod.apply(ctx)
 
   assert.deepEqual(
-    registrations.map((entry) => entry.definition.name),
+    base.map((entry) => entry.definition.name),
     ['sidebar.panellist', 'main'],
   )
-  assert.equal(registrations[0].definition.id, 'xray')
-  assert.equal(registrations[0].definition.order, 1)
-  assert.equal(registrations[0].definition.label(), '2Xray')
-  const icon = registrations[0].component()
-  assert.equal(icon.type, 'svg')
-  assert.equal(registrations[1].definition.key, 'xray')
+  assert.equal(base[0].definition.id, 'xray')
+  assert.equal(base[0].definition.order, 1)
+  assert.equal(base[0].definition.label(), '2Xray')
+  assert.equal(base[0].component().type, 'svg')
+  assert.equal(base[1].definition.key, 'xray')
+
+  const settings = []
+  const controller = {
+    getSnapshot: () => ({ status: 'ready', value: { shareLink: '' }, revision: 0, writable: true }),
+    set: async () => true,
+    mutate: async () => true,
+  }
+  const child = {
+    effect(fn) {
+      fn()
+    },
+    slots: {
+      inject(_name, callback) {
+        callback()
+      },
+      register(definition, component) {
+        settings.push({ definition, component })
+      },
+    },
+    configForms: {
+      get: () => controller,
+      whileServed(namespaces, register) {
+        return register(new Set(namespaces))
+      },
+    },
+  }
+  mod.apply({
+    effect(fn) {
+      fn()
+    },
+    slots: { inject() {}, register() {} },
+    inject(services, callback) {
+      assert.deepEqual(services, ['configForms'])
+      callback(child)
+    },
+  })
+
+  assert.deepEqual(
+    settings.map((entry) => entry.definition.name),
+    ['settings.section', 'plugins.item'],
+  )
+  // The plugins page looks the form up by the settings namespace, not the panel id.
+  assert.equal(settings[0].definition.id, 'xray-proxy')
+  assert.equal(settings[1].definition.id, 'xray-proxy')
+  assert.equal(settings[1].definition.label(), '2Xray')
 })
