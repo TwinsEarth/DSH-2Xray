@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1 — 2026-10-30
+
+### 更新
+
+- **更新/geodata 下载改走直连 HTTP**（node:http/https，不经过全局 undici dispatcher）：代理抖动或断开时仍能完成自更新。
+- 安装失败时返回 `stage`（download/verify/extract/swap）与真实 `error`，设置页直接显示原因，不再只提示“未知错误”。
+- Windows 下插件目录被占用无法 rename 时，回退为逐文件覆盖，避免 EPERM/EBUSY 直接失败。
+
 ## 0.4.0 — 2026-10-30
 
 ### 默认路由名单

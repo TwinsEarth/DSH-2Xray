@@ -130,6 +130,7 @@ export function apply(ctx, rawConfig) {
     auto: config.updates?.auto === true,
     restartRequired: false,
     error: null,
+    lastInstall: null,
   }
   let updateFlight = null
   const checkUpdate = async () => {
@@ -222,6 +223,7 @@ export function apply(ctx, rawConfig) {
                     const info = updateState.available ? updateState : await checkUpdate()
                     if (!info.available) return Response.json({ ok: false, error: '已是最新版本', update: updateState }, { status: 409 })
                     const result = await installUpdate(info, { logger })
+                    updateState.lastInstall = result
                     updateState.restartRequired = result.ok === true
                     updateState.latest = info.latest
                     return Response.json({ ok: result.ok, update: updateState, result })
