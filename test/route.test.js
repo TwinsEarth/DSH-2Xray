@@ -156,3 +156,11 @@ test('a socks inbound always takes the builtin path', async () => {
   assert.equal(snapshot.mode, 'builtin')
   await route.restore()
 })
+
+test('the policy verification host is reserved and cannot be in noProxy', async () => {
+  const { PROBE_URL } = await import('../lib/route.js')
+  const url = new URL(PROBE_URL)
+  assert.equal(url.hostname, 'dsh-2xray-verify.invalid')
+  assert.equal(url.hostname.endsWith('.invalid'), true)
+  assert.notEqual(url.hostname, 'api.deepseek.com')
+})

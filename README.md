@@ -328,6 +328,24 @@ v0.2.0 提供两个入口，互不替代：
 | 状态一直 `degraded` + `route-install-failed` | 查日志里的模块解析诊断；必要时确认 DSH 安装目录结构 |
 | `xray_switch_node` 报 `unknown service ... RoutingService` | xray 版本早于 2024-09；升级二进制，或关闭 `control.enabled` 只用 `activeNode` |
 
+## 路由模式与黑白名单
+
+- `global`（默认）：全部流量走 2Xray。
+- `cn-direct`：`geoip:cn` / `geosite:cn` 直连，其余走代理。插件会从 xray 二进制旁复制 `geoip.dat`/`geosite.dat` 到数据目录，并设置 `XRAY_LOCATION_ASSET`。
+- `whitelist`：仅白名单域名走 2Xray，其余直连。
+
+黑名单优先于白名单与分流，并会同时加入 DSH 的 `noProxy`（xray 重启时也不受影响）。默认白名单：github.com、google.com、youtube.com、x.com、facebook.com；默认黑名单：deepseek.com、api.deepseek.com。
+
+## 内核安装（macOS / Linux）
+
+npm 包不内嵌五平台内核。未找到内核时：
+
+```bash
+node tools/install-xray-core.mjs 26.9.30
+```
+
+脚本下载官方 release 资产、校验 `.dgst` 的 SHA2-256、解压到 `~/.dsh/xray-proxy/bin/`。GitHub 不可达时设置 `DSH_XRAY_MIRROR` 指向镜像。macOS 也会自动搜索 `~/Library/Application Support/v2rayN/bin/xray/xray`。
+
 ## 内置浏览器（Chromium）
 
 DSH 内置浏览器走 Chromium 网络栈，不读 undici dispatcher，插件无法在运行时改它的代理。支持方式只有启动参数：

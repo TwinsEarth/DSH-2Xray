@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.7 — 2026-10-29
+
+### 新增
+
+- **路由模式**：`global` / `cn-direct`（国内 IP、域名直连）/ `whitelist`（仅白名单走 2Xray）。
+- **黑白名单**：白名单默认 github.com、google.com、youtube.com、x.com、facebook.com；黑名单默认 deepseek.com、api.deepseek.com。黑名单优先，并并入 `noProxy`。
+- **内核安装脚本** `tools/install-xray-core.mjs`：官方 release + `.dgst` SHA2-256 校验 + 解压到数据目录。
+- 侧边栏「实时连接信息」默认展开日志。
+
+### 修复
+
+- macOS 自动发现补充 `~/Library/Application Support/v2rayN`、`/Applications` 等路径。
+- 路由验证 URL 改为保留域 `dsh-2xray-verify.invalid`，不再被 `noProxy: deepseek.com` 绕过（route-instance-mismatch 根因）。
+- 非 Windows 下入站端口 <1024 自动回落到 20808（避免把远端 556 当本地端口导致 EACCES）。
+
 ## 0.2.6 — 2026-10-29
 
 ### 内置浏览器支持
