@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 — 2026-10-29
+
+### 修复
+
+- **入站端口护栏覆盖所有平台**：`inbound.port < 1024` 或与节点远端端口相同（如 556）时自动回落到 20808 并告警，避免把远端端口当本地监听。
+- **geodata 发现扩大**：当内核来自平台包、旁边没有 `geoip.dat`/`geosite.dat` 时，会扫描本机 v2rayN 安装目录并复制到数据目录，再设置 `XRAY_LOCATION_ASSET`。
+- **缺 geodata 不再 config-rejected**：cn-direct / geosite 规则缺数据文件时临时降级为 global，代理仍可用；状态新增 `routingFallback` 说明原因。
+
 ## 0.3.0 — 2026-10-29
 
 ### 更新中心

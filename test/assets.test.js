@@ -26,7 +26,7 @@ test('geodata next to a v2rayN binary is copied into the managed data dir', () =
 test('missing geodata is reported rather than silently ignored', () => {
   const root = mkdtempSync(join(tmpdir(), 'dsh-xray-assets-'))
   try {
-    const result = ensureXrayAssets({ binaryPath: join(root, 'xray.exe'), dataDir: join(root, 'data') })
+    const result = ensureXrayAssets({ binaryPath: join(root, 'xray.exe'), dataDir: join(root, 'data'), discoveryRoots: [] })
     assert.deepEqual(result.copied, [])
     assert.deepEqual(result.missing.sort(), ['geoip.dat', 'geosite.dat'])
   } finally {
