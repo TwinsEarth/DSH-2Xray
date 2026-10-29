@@ -233,6 +233,25 @@ export function apply(ctx, rawConfig) {
             }),
           'dsh-2xray: update api',
         )
+        child.effect(
+          () =>
+            child.connection.fetch.register({
+              path: '/api/xray/healthz',
+              methods: ['GET'],
+              fetch: () => {
+                const snapshot = supervisor.snapshot()
+                return Response.json({
+                  ok: true,
+                  service: 'dsh-2xray',
+                  version: `v${updateState.current}`,
+                  state: snapshot.state,
+                  ready: snapshot.state === 'ready',
+                  routeInstalled: snapshot.route?.installed === true,
+                })
+              },
+            }),
+          'dsh-2xray: healthz api',
+        )
       } catch (error) {
         logger.warn(`状态 API 注册失败：${String(error)}`)
       }

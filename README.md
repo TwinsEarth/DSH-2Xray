@@ -334,6 +334,11 @@ v0.2.0 提供两个入口，互不替代：
 
 维护者用 `tools/build-core-packages.mjs` 从官方 zip 生成平台包；`.github/workflows/core-packages.yml` 会在具备 `NPM_TOKEN` secret 时自动下载、校验并发布各平台包。
 
+## 健康检查
+
+- 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v0.3.3", ... }`
+- 发布物（公开、静态）：Release 资产 `healthz.json`，`version` 与 tag 一致，可用于部署流水线的健康探针。
+
 ## 更新
 
 设置页 2Xray 里有三个入口：
