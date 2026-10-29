@@ -375,7 +375,12 @@ Host API：`GET/POST /api/xray/update`（走 `ctx.connection.fetch` 鉴权围栏
 - `cn-direct`：`geoip:cn` / `geosite:cn` 直连，其余走代理。插件会从 xray 二进制旁复制 `geoip.dat`/`geosite.dat` 到数据目录，并设置 `XRAY_LOCATION_ASSET`。
 - `whitelist`：仅白名单域名走 2Xray，其余直连。
 
-黑名单优先于白名单与分流，并会同时加入 DSH 的 `noProxy`（xray 重启时也不受影响）。默认白名单：github.com、google.com、youtube.com、x.com、facebook.com；默认黑名单：deepseek.com、api.deepseek.com。
+黑名单优先于白名单与分流，并会同时加入 DSH 的 `noProxy`（xray 重启时也不受影响）。
+
+- 默认白名单：github.com、google.com、youtube.com、x.com、facebook.com、api.github.com、raw.githubusercontent.com
+- 默认黑名单：deepseek.com、chat.deepseek.com、api.deepseek.com、download.deepseek.com、api-docs.deepseek.com、platform.deepseek.com、registry.npmjs.org
+
+> 默认值只对**没有显式配置**的 profile 生效；已有配置请在设置页按上面列表更新后重启。
 
 ## 内核安装（macOS / Linux）
 

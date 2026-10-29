@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-10-30
+
+### 默认路由名单
+
+- 默认白名单：github.com、google.com、youtube.com、x.com、facebook.com、api.github.com、raw.githubusercontent.com。
+- 默认黑名单：deepseek.com、chat.deepseek.com、api.deepseek.com、download.deepseek.com、api-docs.deepseek.com、platform.deepseek.com、registry.npmjs.org。
+- 默认值只影响未显式配置 routing.* 的 profile；已有配置需在设置页更新并重启。
+
 ## 0.3.6 — 2026-10-29
 
 ### 规则数据

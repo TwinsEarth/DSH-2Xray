@@ -25,6 +25,24 @@ function rulesOf(config) {
 test('global mode keeps the proxy catch-all and private direct rule', () => {
   const { config, errors } = base()
   assert.deepEqual(errors, [])
+  assert.deepEqual(config.routing.whitelist, [
+    'github.com',
+    'google.com',
+    'youtube.com',
+    'x.com',
+    'facebook.com',
+    'api.github.com',
+    'raw.githubusercontent.com',
+  ])
+  assert.deepEqual(config.routing.blacklist, [
+    'deepseek.com',
+    'chat.deepseek.com',
+    'api.deepseek.com',
+    'download.deepseek.com',
+    'api-docs.deepseek.com',
+    'platform.deepseek.com',
+    'registry.npmjs.org',
+  ])
   const rules = rulesOf(config)
   assert.equal(buildXrayConfig(config).routing.domainStrategy, 'AsIs')
   assert.ok(rules.some((rule) => Array.isArray(rule.ip) && rule.ip.includes('10.0.0.0/8')))
