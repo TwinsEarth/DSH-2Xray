@@ -345,6 +345,16 @@ v0.2.0 提供两个入口，互不替代：
 - 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v0.3.3", ... }`
 - 发布物（公开、静态）：Release 资产 `healthz.json`，`version` 与 tag 一致，可用于部署流水线的健康探针。
 
+## DSH 插件市场
+
+索引地址（format 1）：
+
+```
+https://raw.githubusercontent.com/TwinsEarth/DSH-2Xray/main/market/index.json
+```
+
+在 DSH 的「设置 → 插件市场 → 添加源」粘贴该地址，即可搜索并安装 DSH-2Xray。索引只声明 npm 包 `@twinsearth/dsh-2xray` 与其版本，安装仍走 npm registry。
+
 ## 更新
 
 设置页 2Xray 里有三个入口：

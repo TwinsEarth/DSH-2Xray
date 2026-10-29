@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "title": {
+    "en": "TwinsEarth Plugins",
+    "zh": "TwinsEarth 插件"
+  },
+  "description": {
+    "en": "Plugins published by TwinsEarth, including DSH-2Xray.",
+    "zh": "TwinsEarth 发布的插件，包含 DSH-2Xray。"
+  },
+  "plugins": [
+    {
+      "name": "@twinsearth/dsh-2xray",
+      "title": {
+        "en": "DSH-2Xray",
+        "zh": "DSH-2Xray"
+      },
+      "description": {
+        "en": "Xray-core supervisor and router for DSH: VLESS import, global/cn-direct/whitelist routing, three-card panel, update and geodata refresh.",
+        "zh": "DSH 的 Xray 受管内核与路由器：VLESS 导入、全局/国内直连/白名单分流、三卡片面板、更新与规则数据自动更新。"
+      },
+      "author": "TwinsEarth",
+      "homepage": "https://github.com/TwinsEarth/DSH-2Xray",
+      "repository": {
+        "url": "https://github.com/TwinsEarth/DSH-2Xray"
+      },
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjExMTUiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNCIvPjxlbGxpcHNlIGN4PSIzMiIgY3k9IjMyIiByeD0iMTAiIHJ5PSIyNCIvPjxwYXRoIGQ9Ik04IDMyaDQ4TTEyIDIwaDQwTTEyIDQ0aDQwIi8+PC9zdmc+",
+      "versions": [
+        {
+          "version": "0.3.5",
+          "publishTimestamp": 1793277103,
+          "source": {
+            "type": "npm",
+            "registry": "https://registry.npmjs.org"
+          },
+          "engines": {
+            "dsh": ">=0.2.0"
+          }
+        }
+      ]
+    }
+  ]
+}
