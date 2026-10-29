@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.8 — 2026-10-29
+
+### 修复
+
+- `cn-direct` 模式设置 `routing.domainStrategy: IPIfNonMatch`：未被 `geosite:cn` 命中的域名会解析为 IP 再匹配 `geoip:cn`，国内站点不再漏判。
+- `XRAY_LOCATION_ASSET` 显式传入 `run` 与 `run -test` 的 spawn 环境：服务启动器会清理环境，之前 geodata 路径可能丢失，导致 `geoip:cn`/`geosite:cn` 静默失效。
+- 启动与 `xray_validate_config` 前都先复制 `geoip.dat`/`geosite.dat` 到数据目录；缺失时日志明确告警。
+
 ## 0.2.7 — 2026-10-29
 
 ### 新增

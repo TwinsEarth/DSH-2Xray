@@ -26,6 +26,7 @@ test('global mode keeps the proxy catch-all and private direct rule', () => {
   const { config, errors } = base()
   assert.deepEqual(errors, [])
   const rules = rulesOf(config)
+  assert.equal(buildXrayConfig(config).routing.domainStrategy, 'AsIs')
   assert.ok(rules.some((rule) => Array.isArray(rule.ip) && rule.ip.includes('10.0.0.0/8')))
   const catchAll = rules[rules.length - 1]
   assert.equal(catchAll.network, 'tcp,udp')
@@ -35,6 +36,7 @@ test('global mode keeps the proxy catch-all and private direct rule', () => {
 test('cn-direct adds geosite:cn and geoip:cn direct rules', () => {
   const { config } = base({ routing: { mode: 'cn-direct' } })
   const rules = rulesOf(config)
+  assert.equal(buildXrayConfig(config).routing.domainStrategy, 'IPIfNonMatch')
   assert.ok(rules.some((rule) => rule.domain?.includes('geosite:cn')))
   assert.ok(rules.some((rule) => rule.ip?.includes('geoip:cn')))
   assert.equal(rules[rules.length - 1].outboundTag, 'proxy')
