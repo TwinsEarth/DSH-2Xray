@@ -27,8 +27,8 @@
       "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjExMTUiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNCIvPjxlbGxpcHNlIGN4PSIzMiIgY3k9IjMyIiByeD0iMTAiIHJ5PSIyNCIvPjxwYXRoIGQ9Ik04IDMyaDQ4TTEyIDIwaDQwTTEyIDQ0aDQwIi8+PC9zdmc+",
       "versions": [
         {
-          "version": "0.3.5",
-          "publishTimestamp": 1793277103,
+          "version": "0.3.6",
+          "publishTimestamp": 1793277879,
           "source": {
             "type": "npm",
             "registry": "https://registry.npmjs.org"

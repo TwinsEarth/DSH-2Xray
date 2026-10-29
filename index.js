@@ -308,7 +308,7 @@ export function apply(ctx, rawConfig) {
         })().catch((error) => logger.warn(`规则数据更新失败：${String(error)}`))
       }
       const first = setTimeout(refresh, 60_000)
-      const daily = setInterval(refresh, 12 * 60 * 60 * 1000)
+      const daily = setInterval(refresh, 72 * 60 * 60 * 1000)
       first.unref?.()
       daily.unref?.()
     }

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import http from 'node:http'
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { geodataStatus, updateGeodata } from '../lib/geodata.js'
@@ -72,6 +72,20 @@ test('fresh files are skipped unless forced', async () => {
       assert.equal(second.skipped, true)
       assert.equal(readFileSync(join(dir, 'geosite.dat')).length, payload.length)
     })
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('the freshness window is 72 hours', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-geodata-'))
+  try {
+    for (const file of ['geoip.dat', 'geosite.dat']) writeFileSync(join(dir, file), Buffer.alloc(200_000, 0x1f))
+    const now = Math.floor(Date.now() / 1000)
+    for (const file of ['geoip.dat', 'geosite.dat']) utimesSync(join(dir, file), now - 48 * 3600, now - 48 * 3600)
+    assert.equal(geodataStatus(dir).stale, false, '48h old must still be fresh')
+    for (const file of ['geoip.dat', 'geosite.dat']) utimesSync(join(dir, file), now - 73 * 3600, now - 73 * 3600)
+    assert.equal(geodataStatus(dir).stale, true, '73h old must be stale')
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
