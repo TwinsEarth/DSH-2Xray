@@ -334,6 +334,12 @@ v0.2.0 提供两个入口，互不替代：
 
 维护者用 `tools/build-core-packages.mjs` 从官方 zip 生成平台包；`.github/workflows/core-packages.yml` 会在具备 `NPM_TOKEN` secret 时自动下载、校验并发布各平台包。
 
+## 规则数据自动更新
+
+设置页默认勾选「每日更新规则数据」：Host 会下载 XTLS 的 `geoip-lite.dat` / `geosite.dat`，失败时回退 jsDelivr（Loyalsoldier）；文件小于 100KB 视为错误页并拒绝替换。首次缺失时在启动前下载，之后每 12 小时检查一次，更新成功后重启 xray 热加载。
+
+> Xray 26.9.30 接受顶层 `geodata` 配置块但实测不执行其 cron（85 秒内无下载），因此更新由插件完成，不依赖该字段。
+
 ## 健康检查
 
 - 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v0.3.3", ... }`

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.5 — 2026-10-29
+
+### 规则数据
+
+- 新增 `geodata.autoUpdate`（默认 true）：XTLS 主源 + jsDelivr 回退，下载 `geoip.dat`/`geosite.dat` 并原子替换。
+- 首次缺失时在启动前下载；之后每 12 小时检查，更新后调用 `supervisor.restart()` 让 xray 重新加载。
+- 小于 100KB 的响应视为错误页，不会覆盖现有文件。
+- 设置页新增「每日更新规则数据」勾选框。
+- 实测确认 Xray 的顶层 `geodata` 块只被解析、不执行 cron，因此由插件侧实现。
+
 ## 0.3.4 — 2026-10-29
 
 ### 修复

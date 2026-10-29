@@ -9,6 +9,7 @@ import { installTools } from './lib/tools.js'
 import { LogBuffer } from './lib/logbuf.js'
 import { Monitor } from './lib/monitor.js'
 import { checkForUpdate, installUpdate, ownVersion } from './lib/update.js'
+import { geodataStatus, updateGeodata } from './lib/geodata.js'
 
 export const name = 'dsh-2xray'
 
@@ -172,6 +173,7 @@ export function apply(ctx, rawConfig) {
                     vpnName: node?.id ?? snapshot.activeNode ?? null,
                     probe: monitor.snapshot(),
                     update: updateState,
+                    geodata: geodataStatus(dataDir),
                   },
                   logs: page.items,
                   cursor: page.cursor,
@@ -281,10 +283,38 @@ export function apply(ctx, rawConfig) {
     'dsh-2xray/xray-supervisor',
   )
 
-  // Detached by design: activation must not block the harness boot on xray
-  // startup. Every rejection is caught — an unhandled one would dispose the
-  // whole application.
-  supervisor.start().catch((error) => logger.error(`xray 监督器异常：${String(error)}`))
+  const needsGeodata = config.routing?.mode === 'cn-direct' || config.routing?.geositeCn || config.routing?.blockAds
+  const boot = async () => {
+    if (dataDir && config.geodata?.autoUpdate !== false) {
+      const status = geodataStatus(dataDir)
+      if (status.missing.length > 0 && needsGeodata) {
+        // Download before the first spawn, otherwise cn-direct would either
+        // fail or degrade to global on a fresh machine.
+        const result = await updateGeodata({ dataDir, logger, timeoutMs: 20_000 }).catch((error) => ({
+          updated: [],
+          failed: ['download'],
+          error,
+        }))
+        if (result?.updated?.length > 0) logger.info('规则数据已下载，使用最新 geodata 启动 xray')
+      }
+      const refresh = () => {
+        ;(async () => {
+          if (!geodataStatus(dataDir).stale) return
+          const result = await updateGeodata({ dataDir, logger })
+          if (result?.updated?.length > 0) {
+            logger.info('规则数据已更新，重启 xray 加载新数据')
+            await supervisor.restart('geodata-updated')
+          }
+        })().catch((error) => logger.warn(`规则数据更新失败：${String(error)}`))
+      }
+      const first = setTimeout(refresh, 60_000)
+      const daily = setInterval(refresh, 12 * 60 * 60 * 1000)
+      first.unref?.()
+      daily.unref?.()
+    }
+    await supervisor.start()
+  }
+  boot().catch((error) => logger.error(`xray 监督器异常：${String(error)}`))
   installTools({ ctx, supervisor, logger }).catch((error) => logger.warn(`安装 xray_* 工具失败：${String(error)}`))
 
   return dispose
