@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.9 — 2026-10-29
+
+### 内核分发
+
+- 新增按平台拆分的可选内核包（`@twinsearth/dsh-2xray-core-<os>-<arch>`），主包通过 `optionalDependencies` 引用，npm 只装当前平台。
+- `resolveBinary()` 新增 `core-package` 来源；未安装时继续回退到插件 `bin/`、数据目录、v2rayN 发现与 PATH。
+- 新增 `tools/build-core-packages.mjs`（官方 zip → npm 包）与 `.github/workflows/core-packages.yml`（下载、`.dgst` 校验、发布；无 `NPM_TOKEN` 时只上传 artifact）。
+
+### 验证
+
+- 真机 xray 26.9.30 对 global / cn-direct / whitelist 三种配置执行 `run -test` 全部通过（含 geodata 与 IPIfNonMatch）。
+
 ## 0.2.8 — 2026-10-29
 
 ### 修复

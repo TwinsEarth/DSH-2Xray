@@ -1,0 +1,79 @@
+name: core-packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      xray_version:
+        description: Xray-core release tag without the v prefix
+        required: true
+        default: '26.9.30'
+      package_version:
+        description: npm version for the platform core packages
+        required: true
+        default: '0.2.9'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: core ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: win32-x64
+            zip: Xray-windows-64.zip
+          - os: macos-14
+            target: darwin-arm64
+            zip: Xray-macos-arm64-v8a.zip
+          - os: macos-13
+            target: darwin-x64
+            zip: Xray-macos-64.zip
+          - os: ubuntu-latest
+            target: linux-x64
+            zip: Xray-linux-64.zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: download and verify the official asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p vendor/zips
+          BASE="https://github.com/XTLS/Xray-core/releases/download/v${{ inputs.xray_version }}"
+          curl -fL --retry 5 --retry-delay 3 -o "vendor/zips/${{ matrix.zip }}" "$BASE/${{ matrix.zip }}"
+          curl -fL --retry 5 --retry-delay 3 -o "vendor/zips/${{ matrix.zip }}.dgst" "$BASE/${{ matrix.zip }}.dgst"
+          node -e '
+            const { createHash } = require("node:crypto");
+            const { readFileSync } = require("node:fs");
+            const zip = process.argv[1];
+            const digest = readFileSync(zip + ".dgst", "utf8").match(/SHA2-256:\s*([0-9a-f]{64})/i);
+            if (!digest) throw new Error("no SHA2-256 in .dgst");
+            const actual = createHash("sha256").update(readFileSync(zip)).digest("hex");
+            if (actual !== digest[1].toLowerCase()) throw new Error(`digest mismatch: ${actual}`);
+            console.log("verified", actual);
+          ' "vendor/zips/${{ matrix.zip }}"
+      - name: build the platform package
+        run: node tools/build-core-packages.mjs --zips vendor/zips --out dist-core --version ${{ inputs.package_version }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-${{ matrix.target }}
+          path: dist-core
+      - name: publish (needs NPM_TOKEN)
+        if: ${{ env.NPM_TOKEN != '' }}
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          for dir in dist-core/*/; do
+            npm publish "$dir" --access public
+          done

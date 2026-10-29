@@ -328,6 +328,12 @@ v0.2.0 提供两个入口，互不替代：
 | 状态一直 `degraded` + `route-install-failed` | 查日志里的模块解析诊断；必要时确认 DSH 安装目录结构 |
 | `xray_switch_node` 报 `unknown service ... RoutingService` | xray 版本早于 2024-09；升级二进制，或关闭 `control.enabled` 只用 `activeNode` |
 
+### 平台内核包
+
+`@twinsearth/dsh-2xray` 通过 `optionalDependencies` 引用按平台拆分的核心包（例如 `@twinsearth/dsh-2xray-core-win32-x64`），npm 只安装当前平台那一个。本地没有可用内核包时，仍按 `插件 bin/ → 数据目录 → v2rayN 发现 → PATH` 回退，或用 `tools/install-xray-core.mjs` 安装。
+
+维护者用 `tools/build-core-packages.mjs` 从官方 zip 生成平台包；`.github/workflows/core-packages.yml` 会在具备 `NPM_TOKEN` secret 时自动下载、校验并发布各平台包。
+
 ## 路由模式与黑白名单
 
 - `global`（默认）：全部流量走 2Xray。

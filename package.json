@@ -1,6 +1,6 @@
 {
   "name": "@twinsearth/dsh-2xray",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "private": false,
   "description": "DSH-2Xray: supervises xray-core and routes DSH process-wide HTTP(S) traffic through its local inbound, with optional multi-node gRPC control plane",
   "type": "module",
@@ -48,5 +48,8 @@
       ],
       "platform": "web"
     }
+  },
+  "optionalDependencies": {
+    "@twinsearth/dsh-2xray-core-win32-x64": "0.2.9"
   }
 }

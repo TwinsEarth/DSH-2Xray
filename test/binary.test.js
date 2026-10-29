@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { BinaryError, resolveBinary } from '../lib/binary.js'
+import { BinaryError, optionalCorePaths, resolveBinary } from '../lib/binary.js'
 import { normalizeConfig } from '../lib/config.js'
 
 const packageRoot = join('C:', 'plugins', 'dsh-2xray')
@@ -128,4 +128,15 @@ test('discovers a v2rayN layout when nothing else resolves', async () => {
     process.env.PATH = previousPath
     rmSync(dir, { recursive: true, force: true })
   }
+})
+
+test('optional platform core packages resolve on their own platform', () => {
+  const manifest = join('C:', 'profile', 'node_modules', '@twinsearth', 'dsh-2xray-core-darwin-arm64', 'package.json')
+  const paths = optionalCorePaths({
+    platform: 'darwin',
+    arch: 'arm64',
+    resolvePackage: () => manifest,
+  })
+  assert.deepEqual(paths, [join('C:', 'profile', 'node_modules', '@twinsearth', 'dsh-2xray-core-darwin-arm64', 'bin', 'xray')])
+  assert.deepEqual(optionalCorePaths({ platform: 'darwin', arch: 'arm64', resolvePackage: () => { throw new Error('missing') } }), [])
 })
