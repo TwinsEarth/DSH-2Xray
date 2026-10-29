@@ -8,6 +8,7 @@ import { ControlClient } from './lib/control/client.js'
 import { installTools } from './lib/tools.js'
 import { LogBuffer } from './lib/logbuf.js'
 import { Monitor } from './lib/monitor.js'
+import { checkForUpdate, installUpdate, ownVersion } from './lib/update.js'
 
 export const name = 'dsh-2xray'
 
@@ -120,6 +121,29 @@ export function apply(ctx, rawConfig) {
     logger,
   })
 
+  const updateState = {
+    current: ownVersion(),
+    latest: null,
+    available: false,
+    checkedAt: null,
+    auto: config.updates?.auto === true,
+    restartRequired: false,
+    error: null,
+  }
+  let updateFlight = null
+  const checkUpdate = async () => {
+    if (updateFlight) return updateFlight
+    updateFlight = checkForUpdate({ current: updateState.current })
+      .then((info) => {
+        Object.assign(updateState, info, { auto: config.updates?.auto === true, error: info.error ?? null })
+        return info
+      })
+      .finally(() => {
+        updateFlight = null
+      })
+    return updateFlight
+  }
+
   // Authenticated status/log feed for the browser panel. Optional service: a
   // profile without `connection` keeps the proxy and the tools, it only loses
   // the live panel data.
@@ -147,6 +171,7 @@ export function apply(ctx, rawConfig) {
                     proxied,
                     vpnName: node?.id ?? snapshot.activeNode ?? null,
                     probe: monitor.snapshot(),
+                    update: updateState,
                   },
                   logs: page.items,
                   cursor: page.cursor,
@@ -176,10 +201,58 @@ export function apply(ctx, rawConfig) {
             }),
           'dsh-2xray: switch api',
         )
+        child.effect(
+          () =>
+            child.connection.fetch.register({
+              path: '/api/xray/update',
+              methods: ['GET', 'POST'],
+              requestBody: 'buffered',
+              fetch: async (request) => {
+                try {
+                  if (request.method === 'GET') {
+                    const url = new URL(request.url)
+                    const stale = !updateState.checkedAt || Date.now() - updateState.checkedAt > 600_000
+                    if (stale || url.searchParams.get('refresh') === '1') await checkUpdate()
+                    return Response.json({ ok: true, update: updateState })
+                  }
+                  const body = await request.json().catch(() => ({}))
+                  if (body.action === 'install') {
+                    const info = updateState.available ? updateState : await checkUpdate()
+                    if (!info.available) return Response.json({ ok: false, error: '已是最新版本', update: updateState }, { status: 409 })
+                    const result = await installUpdate(info, { logger })
+                    updateState.restartRequired = result.ok === true
+                    updateState.latest = info.latest
+                    return Response.json({ ok: result.ok, update: updateState, result })
+                  }
+                  await checkUpdate()
+                  return Response.json({ ok: true, update: updateState })
+                } catch (error) {
+                  return Response.json({ ok: false, error: String(error?.message ?? error) }, { status: 400 })
+                }
+              },
+            }),
+          'dsh-2xray: update api',
+        )
       } catch (error) {
         logger.warn(`状态 API 注册失败：${String(error)}`)
       }
     })
+  }
+
+  // Opt-in auto-update: check once per start and install a newer tarball.
+  // Loading the new code still requires a DSH restart, so this never restarts
+  // the app behind the user's back.
+  if (config.updates?.auto) {
+    const timer = setTimeout(() => {
+      ;(async () => {
+        const info = await checkUpdate()
+        if (!info.available) return
+        const result = await installUpdate(info, { logger })
+        updateState.restartRequired = result.ok === true
+        if (result.ok) logger.info(`自动更新完成：${info.latest}；重启 DSH 后生效`)
+      })().catch((error) => logger.warn(`自动更新检查失败：${String(error)}`))
+    }, 5000)
+    timer.unref?.()
   }
 
   const dispose = ctx.effect(

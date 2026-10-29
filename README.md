@@ -334,6 +334,16 @@ v0.2.0 提供两个入口，互不替代：
 
 维护者用 `tools/build-core-packages.mjs` 从官方 zip 生成平台包；`.github/workflows/core-packages.yml` 会在具备 `NPM_TOKEN` secret 时自动下载、校验并发布各平台包。
 
+## 更新
+
+设置页 2Xray 里有三个入口：
+
+- **检测更新**：查询 npm 上的 `latest`，显示当前/最新版本。
+- **立即更新**：下载并校验 npm tarball（sha512），原子替换插件目录；**重启 DSH 后生效**。
+- **自动更新**：启动 5 秒后检查并安装新版本（默认关闭；同样需要重启）。
+
+Host API：`GET/POST /api/xray/update`（走 `ctx.connection.fetch` 鉴权围栏）。
+
 ## 路由模式与黑白名单
 
 - `global`（默认）：全部流量走 2Xray。

@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.3.0 — 2026-10-29
+
+### 更新中心
+
+- 设置页「检测更新 / 立即更新 / 自动更新」：npm registry 检测、sha512 校验、tarball 原子替换、重启生效；自动更新默认关闭。
+- Host 鉴权接口 `GET/POST /api/xray/update`，状态并入 `xray_status.update`。
+
+### 分流与内核
+
+- 路由模式 global / cn-direct / whitelist，cn-direct 使用 `IPIfNonMatch` + geodata 自动复制。
+- 黑名单最优先并并入 `noProxy`；白名单仅 whitelist 模式生效。
+- 按平台内核包（`optionalDependencies`，已发布 win32-x64）+ 官方 zip 构建脚本 + CI workflow。
+- macOS 发现路径、特权端口回落、探测 URL 修复。
+
+### 界面
+
+- 三卡片面板、节点切换、日志默认展开、设置页 2Xray 标签页、VLESS 链接/本地二维码/屏幕扫码导入。
+
+## 0.2.10 — 2026-10-29
+
+### 更新
+
+- 设置页新增「检测更新 / 立即更新 / 自动更新」。
+- 检测：读取 npm registry 的 `latest` 并做 semver 比较。
+- 立即更新：下载 tarball、校验 sha512（或 sha1）、解压并以 rename + 回滚方式替换插件目录；返回「重启 DSH 生效」。
+- 自动更新：`updates.auto` 开启后，启动 5 秒检查并安装；默认关闭，不自动重启应用。
+- 新增鉴权接口 `GET/POST /api/xray/update`，状态同时出现在 `xray_status.update`。
+
 ## 0.2.9 — 2026-10-29
 
 ### 内核分发
