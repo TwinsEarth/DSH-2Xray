@@ -111,6 +111,7 @@ export function apply(ctx, rawConfig) {
     route,
     control,
     schemaLoaded: Boolean(Config),
+    autoInstallCore: true,
     logger,
     dataDir,
   })

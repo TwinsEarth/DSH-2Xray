@@ -1,0 +1,14 @@
+Wintun 0.14.1
+Copyright (C) 2018-2024 Jason A. Donenfeld. All Rights Reserved.
+
+Wintun is free software distributed under the GNU General Public License
+version 2 (GPL-2.0). This copy is redistributed unmodified.
+
+Upstream source: https://git.zx2c4.com/wintun/
+Official binaries: https://www.wintun.net/
+License text: see GPL-2.0.txt in this directory.
+
+DSH-2Xray ships this DLL only for its opt-in TUN mode on Windows. It copies
+the file next to the xray executable at runtime; TUN is disabled by default.
+If you prefer not to use the bundled copy, place your own wintun.dll beside
+xray.exe, or disable TUN in the plugin settings.

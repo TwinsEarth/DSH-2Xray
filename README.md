@@ -371,6 +371,14 @@ Host API：`GET/POST /api/xray/update`（走 `ctx.connection.fetch` 鉴权围栏
 
 ## TUN 模式（参考 v2rayN）
 
+### 依赖文件
+
+- **Windows**：插件自带 `bin/wintun.dll`（Wintun 0.14.1，x64，GPL-2.0，见 `bin/WINTUN-NOTICE.txt`）。启用 TUN 时会自动复制到 xray 可执行文件旁，**不需要安装 v2rayN**。
+- **macOS / Linux**：TUN 使用系统 `utun`/tun 设备，**不需要 wintun**，只需要 root 权限。
+- **缺少 xray 核心时**：插件会自动下载当前平台的官方 Xray release（校验 `.dgst` SHA2-256）到数据目录的 `bin/`，macOS arm64/x64、Linux x64/arm64 均已覆盖；可用 `binary.autoInstall: false` 关闭。
+
+
+
 DSH 内置浏览器是 Chromium，不读插件的 undici dispatcher；只加启动参数能覆盖浏览器，但 DNS 仍可能被本地污染。v2rayN 的做法是 **虚拟网卡接管全机流量 + 由 Xray 远程解析 DNS**，v0.4.2 提供了同样的可选模式：
 
 ```yaml

@@ -6,6 +6,9 @@ lib/control/*.js
 locale/*.json
 icon.svg
 bin/README.md
+bin/wintun.dll
+bin/WINTUN-NOTICE.txt
+bin/GPL-2.0.txt
 tools/*
 README.md
 CHANGELOG.md

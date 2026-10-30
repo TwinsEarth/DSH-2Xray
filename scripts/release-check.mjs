@@ -98,7 +98,14 @@ for (const file of files) {
 check('no secrets in packaged files', leaks.length === 0, leaks.join(', ') || 'clean')
 
 const binFiles = files.filter((file) => file.startsWith('bin/'))
-check('no xray binary committed', binFiles.every((file) => file.endsWith('README.md')), binFiles.join(', ') || 'none')
+// wintun.dll is intentionally bundled for the opt-in TUN mode; xray/v2ray
+// executables and archives still must not be committed.
+const forbiddenBinaries = binFiles.filter((file) => /(^|\/)(xray|v2ray)(\.exe)?$|\.(exe|zip|tgz|tar\.gz)$/i.test(file))
+check(
+  'no xray binary committed',
+  forbiddenBinaries.length === 0,
+  forbiddenBinaries.join(', ') || `bundled: ${binFiles.join(', ') || 'none'}`,
+)
 
 const failures = checks.filter((entry) => !entry.ok)
 console.log(JSON.stringify({ ok: failures.length === 0, package: `${pkg.name}@${pkg.version}`, files: files.length, checks }, null, 2))

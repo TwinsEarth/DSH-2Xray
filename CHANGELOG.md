@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.3 — 2026-10-30
+
+### TUN 依赖打包
+
+- 插件自带 `bin/wintun.dll`（Wintun 0.14.1 x64，GPL-2.0 + 许可证/来源说明）；启用 TUN 时自动复制到 xray 目录，无需用户安装 v2rayN。
+- macOS/Linux 的 TUN 使用系统 utun/tun，不需要 wintun，仅需 root。
+- 新增 `binary.autoInstall`（默认 true）：找不到 xray 时自动下载当前平台官方核心，校验 `.dgst` SHA2-256 后放入数据目录；覆盖 macOS arm64/x64、Linux x64/arm64、Windows。
+- release-check 允许 `bin/wintun.dll` 与其许可证，仍禁止提交 xray 可执行文件。
+
 ## 0.4.2 — 2026-10-30
 
 ### TUN 模式（参考 v2rayN）
