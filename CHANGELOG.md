@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-10-30
+
+### 里程碑：TUN 与全平台依赖
+
+- Windows 内置 `wintun.dll`（0.14.1 x64，GPL-2.0），启用 TUN 时自动复制到 xray 目录，不再依赖 v2rayN。
+- macOS/Linux TUN 使用系统 utun/tun，仅需 root；缺核心时按平台自动下载官方 Xray（`.dgst` SHA2-256 校验）。
+- 汇总既有能力：全局/国内直连/白名单分流、黑白名单、三卡片面板、设置页 2Xray 标签、链接/二维码导入、更新中心、geodata 72h 自动更新、healthz。
+- 无破坏性配置变更；0.4.x 的 profile 可直接升级。
+
 ## 0.4.3 — 2026-10-30
 
 ### TUN 依赖打包
