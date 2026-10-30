@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2 — 2026-10-30
+
+### TUN 模式（参考 v2rayN）
+
+- 新增 `tun.enabled`（默认 false）：生成 `protocol: tun` 入站，虚拟网卡接管全机流量，含内置 Chromium 浏览器。
+- 顶层 `dns` 使用远程 DoH（1.1.1.1 / dns.google），`protocol: dns` 路由到 `dns-out`，避免本地 DNS 污染。
+- 启动前检查：Windows 缺 `wintun.dll` → `tun-wintun-missing`；非管理员 → `tun-admin-required`，均给出可读原因。
+- 设置页新增 TUN 开关与说明；状态快照新增 `tun`。
+- 配置已用 Xray 26.9.30 `run -test` 验证通过。
+
 ## 0.4.1 — 2026-10-30
 
 ### 更新

@@ -369,6 +369,31 @@ https://raw.githubusercontent.com/TwinsEarth/DSH-2Xray/main/market/index.json
 
 Host API：`GET/POST /api/xray/update`（走 `ctx.connection.fetch` 鉴权围栏）。
 
+## TUN 模式（参考 v2rayN）
+
+DSH 内置浏览器是 Chromium，不读插件的 undici dispatcher；只加启动参数能覆盖浏览器，但 DNS 仍可能被本地污染。v2rayN 的做法是 **虚拟网卡接管全机流量 + 由 Xray 远程解析 DNS**，v0.4.2 提供了同样的可选模式：
+
+```yaml
+tun:
+  enabled: true          # 默认 false
+  name: dsh-xray-tun
+  mtu: 1500
+```
+
+开启后 xray 配置会多出：
+
+- `protocol: tun` 入站（`10.0.0.1/16` 网关、`0.0.0.0/1` + `128.0.0.0/1` 路由）；
+- 顶层 `dns`：DoH `https://1.1.1.1/dns-query` / `https://dns.google/dns-query`；
+- `protocol: dns` 路由到 `dns-out`，应用不再使用本地被污染的 DNS。
+
+要求：
+
+- **管理员/root 权限**（创建虚拟网卡）；
+- Windows 需要 `wintun.dll`（放在 xray 可执行文件旁，或从 v2rayN 目录复制）；
+- 开启后重启 DSH；缺少权限或 dll 时插件会以 `tun-admin-required` / `tun-wintun-missing` 明确失败，而不是静默。
+
+> 不想用 TUN 时，仍可用 `tools/launch-with-browser-proxy.cmd` 仅给 Chromium 加 `--proxy-server`；TUN 解决的是「全机 + DNS 污染」。
+
 ## 路由模式与黑白名单
 
 - `global`（默认）：全部流量走 2Xray。
