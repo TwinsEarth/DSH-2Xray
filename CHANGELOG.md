@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 — 2026-10-31
+
+### 黑名单支持完整 URL
+
+- 黑名单/白名单条目现在接受完整 URL（如 `https://registry.npmjs.org/`），统一归一为主机名并去重。
+- 默认黑名单加入 `https://registry.npmjs.org/`；它与既有 `registry.npmjs.org` 归一为同一主机，只保留一条。
+- 新增单测覆盖 URL 归一与去重。
+
 ## 0.5.0 — 2026-10-30
 
 ### 里程碑：TUN 与全平台依赖

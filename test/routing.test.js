@@ -89,3 +89,13 @@ test('whitelist wins over bypassDomains but loses to the blacklist', () => {
   assert.ok(black >= 0)
   assert.equal(white, -1)
 })
+
+test('a full registry URL is normalized and deduped against its host form', () => {
+  const { config } = base({
+    routing: { blacklist: ['registry.npmjs.org', 'https://registry.npmjs.org/'] },
+  })
+  assert.deepEqual(config.routing.blacklist, ['registry.npmjs.org'])
+  assert.match(config.noProxy, /(^|,)registry\.npmjs\.org(,|$)/)
+  const rules = rulesOf(config)
+  assert.ok(rules[0].domain.includes('domain:registry.npmjs.org'))
+})
