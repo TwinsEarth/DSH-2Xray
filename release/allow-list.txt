@@ -19,3 +19,4 @@ scripts/*.mjs
 test/*.js
 market/*
 chrome-extension/**
+standalone/**

@@ -42,6 +42,17 @@ node scripts/build-extension.mjs
 
 > Chrome 只能直接加载解压目录；zip 用于备份、审核或转 CRX。若上架 Chrome Web Store，请移除 `manifest.json` 的 `key` 字段，由商店分配身份。
 
+## 没有 DSH 时（独立版）
+
+不想安装 DSH / DSH-2Xray 插件时，使用仓库的 **2Xray 独立版**（Windows）：
+
+1. 解压发布资产 `2xray-standalone-win64-v0.7.0.zip`；
+2. 双击 `install.cmd`，粘贴 `vless://` 链接；
+3. 安装器会拉起本地 Xray（`127.0.0.1:20808`）、创建可选登录启动项，并把本扩展解压到安装目录 `extension/`；
+4. 在 `chrome://extensions` 加载该目录即可。
+
+也可以把本扩展指向任何监听 `127.0.0.1:20808` 的本地 Xray / v2rayN，不依赖 DSH。详见 [../standalone/windows/README.md](../standalone/windows/README.md)。
+
 ## 快速开始
 
 1. **先准备本地 Xray 入站。** 用 DSH-2Xray 插件（`inbound.port` 默认 `20808`）或 v2rayN 提供 `127.0.0.1:20808`；

@@ -447,6 +447,25 @@ node --test --test-isolation=none test/extension-*.test.js
 node scripts/build-extension.mjs   # dist/2xray-chrome-v0.7.0.zip
 ```
 
+## 独立版（无需 DSH，Windows）
+
+如果用户没有安装 DSH，可以直接使用 **2Xray 独立版**：一个压缩包内含 Xray 内核、配置生成脚本、登录启动项和 Chrome 扩展，安装后浏览器即可走本地 Xray。
+
+- 发布资产：`2xray-standalone-win64-v0.7.0.zip`
+- 安装：解压 → 双击 `install.cmd` → 粘贴 `vless://` 链接 → 按提示在 `chrome://extensions` 加载安装目录里的 `extension/`
+- 默认：`127.0.0.1:20808`、`cn-direct` 分流、仅监听回环、不改系统代理；可关闭登录启动
+- 管理：安装目录里的 `start.cmd` / `stop.cmd` / `uninstall.cmd`
+- 详细说明：[standalone/windows/README.md](standalone/windows/README.md)
+
+构建独立版（需要一份官方 Xray 26.9.30 的 Windows 文件）：
+
+```powershell
+node scripts/build-standalone.mjs --core "$env:USERPROFILE\.dsh\xray-proxy\bin"
+# dist/2xray-standalone-win64-v0.7.0.zip
+```
+
+> macOS/Linux 用户可直接使用同一 Chrome 扩展 + 任意本地 Xray（监听 `127.0.0.1:20808`）；独立的 Unix 安装器尚未打包。
+
 ## 内置浏览器（Chromium）
 
 DSH 内置浏览器走 Chromium 网络栈，不读 undici dispatcher，插件无法在运行时改它的代理。支持方式只有启动参数：

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### 2Xray 独立版（Windows，无需 DSH）
+
+- 新增 `standalone/windows/`：`install.cmd` + `install.ps1`，支持粘贴 VLESS 链接、生成 Xray 配置、复制内核、创建隐藏登录启动项、启动并做 HTTP 204 探测；`uninstall.ps1` 可停止内核并清理。
+- 新增 `scripts/build-standalone.mjs`：把 Xray 26.9.30 官方 Windows 二进制、规则数据、安装脚本和 `2xray-chrome-v0.7.0.zip` 打成 `dist/2xray-standalone-win64-v0.7.0.zip`（约 17.7 MB）。
+- 独立版仅监听 `127.0.0.1:20808`，不改系统代理、不安装服务；默认 `cn-direct` 分流，登录启动项可关闭。
+- 第三方许可：Xray-core MPL-2.0 全文与扩展内 qrcode/jsQR 许可写入 `standalone/THIRD-PARTY-NOTICES.txt`。
+- 端到端验证：全新目录安装 → 内核启动 → `HTTP 204` → 扩展解压 23 文件 → 停止/卸载清理。
+
 ## 0.7.0 — 2026-11-02
 
 ### 双版本发布：DSH 插件 + Chrome 扩展

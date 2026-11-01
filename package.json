@@ -34,7 +34,8 @@
   "scripts": {
     "test": "node --test --test-isolation=none test/*.test.js",
     "check": "node scripts/release-check.mjs",
-    "build:extension": "node scripts/build-extension.mjs"
+    "build:extension": "node scripts/build-extension.mjs",
+    "build:standalone": "node scripts/build-standalone.mjs"
   },
   "engines": {
     "node": ">=22"
