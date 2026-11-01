@@ -19,3 +19,5 @@ jobs:
         run: node --test test/*.test.js
       - name: release self-check
         run: node scripts/release-check.mjs
+      - name: chrome extension build + checks
+        run: node scripts/build-extension.mjs

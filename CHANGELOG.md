@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.7.0 — 2026-11-02
+
+### 双版本发布：DSH 插件 + Chrome 扩展
+
+本版本同时发布两个安装形态，共享同一套 VLESS 节点、分流默认值与 Xray 配置语义：
+
+- **DSH 插件** `@twinsearth/dsh-2xray@0.7.0`：托管 xray-core、接管 DSH 进程流量（既有能力）。
+- **Chrome 扩展** `2Xray for Chrome 0.7.0`：把 Chrome 流量接到同一本地入站，含三卡片面板、PAC 分流、VLESS 二维码导入与配置生成。
+
+#### Chrome 扩展（首次发布）
+
+- Manifest V3，固定扩展 ID `jcalgojagadmmjeolgahhmhnmhdkecna`，无远程代码、无遥测。
+- 三卡片面板：连接状态（延迟/出口 IP/分流模式）、当前 VLESS 节点（REALITY/TLS 字段 + 分享二维码）、路由与最近日志。
+- PAC 分流：`global` / `whitelist` / `cn-direct`（`.cn` + 常见国内站点近似）；黑名单永远直连，优先级最高；探测域名强制走代理以反映真实隧道。
+- VLESS 链接解析（与插件同语义）、二维码生成、二维码图片 / 摄像头扫码导入；生成独立 xray-core 客户端配置。
+- 设置导入导出、定时探测、`Alt+Shift+X` 快捷键、ON/! 徽章；打包产物可复现。
+- 真机冒烟修复：移除 Chrome App 专用的 `videoCapture` 清单权限；PAC 严格 ASCII（去除 em dash + `asciiJson` 转义），并新增 PAC 纯 ASCII 断言。
+- 扩展源码随 npm 包携带（`chrome-extension/`），Release 同时提供独立 zip。
+
+#### 发布物
+
+- npm：`@twinsearth/dsh-2xray@0.7.0`
+- GitHub Release：`.tgz`、`2xray-chrome-v0.7.0.zip`、`healthz.json`、`SHA256SUMS`
+- 市场索引：`market/index.json` 增加 0.7.0
+
+#### 兼容性
+
+- DSH >= 0.2.1；Node 22/24 测试矩阵；Chrome >= 116（MV3 service worker + PAC）。
+- 扩展与插件版本对齐为 0.7.0，便于双版本排障。
+
 ## 0.6.0 — 2026-10-31
 
 ### 黑名单支持完整 URL

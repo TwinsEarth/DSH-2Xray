@@ -346,8 +346,8 @@ v0.2.0 提供两个入口，互不替代：
 
 ## 健康检查
 
-- 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v0.3.3", ... }`
-- 发布物（公开、静态）：Release 资产 `healthz.json`，`version` 与 tag 一致，可用于部署流水线的健康探针。
+- 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v0.7.0", ... }`
+- 发布物（公开、静态）：Release 资产 `healthz.json`，`version` 与 tag 一致（0.7.0 → `v0.7.0`），可用于部署流水线的健康探针。
 
 ## DSH 插件市场
 
@@ -424,6 +424,28 @@ node tools/install-xray-core.mjs 26.9.30
 ```
 
 脚本下载官方 release 资产、校验 `.dgst` 的 SHA2-256、解压到 `~/.dsh/xray-proxy/bin/`。GitHub 不可达时设置 `DSH_XRAY_MIRROR` 指向镜像。macOS 也会自动搜索 `~/Library/Application Support/v2rayN/bin/xray/xray`。
+
+## Chrome 扩展（2Xray for Chrome）
+
+自 0.7.0 起与本插件同版本发布（双版本）：仓库内的 [`chrome-extension/`](chrome-extension/README.md) 是 Manifest V3 浏览器伴侣。
+
+- 把 **Chrome 流量**指向本地 Xray HTTP/SOCKS 入站（默认 `127.0.0.1:20808`，与插件默认值一致）；
+- 三卡片面板：连接状态 / 当前 VLESS 节点 + 分享二维码 / 路由与最近日志；
+- PAC 分流：全局、白名单、CN 直连（浏览器侧近似 `.cn` + 常见国内站点；完整 geosite 仍由内核 `cn-direct` 负责）；
+- `vless://` 链接导入、图片/摄像头扫码、生成独立 `config.json`（VLESS + 本地 inbound + 路由）；
+- 黑名单永远直连，默认带 `deepseek.com` 系列与 `registry.npmjs.org`。
+
+安装：`chrome://extensions` → 开发者模式 → 加载已解压的扩展程序 → 选择 `chrome-extension/`（或解压 Release 中的 `2xray-chrome-v0.7.0.zip`）。
+固定扩展 ID：`jcalgojagadmmjeolgahhmhnmhdkecna`。
+
+> 扩展不能启动/停止 `xray` 进程，也不能接管系统全局流量；内核由本插件、v2rayN 等提供，系统级代理请用 TUN 模式。详见 [chrome-extension/README.md](chrome-extension/README.md)。
+
+构建与测试：
+
+```powershell
+node --test --test-isolation=none test/extension-*.test.js
+node scripts/build-extension.mjs   # dist/2xray-chrome-v0.7.0.zip
+```
 
 ## 内置浏览器（Chromium）
 

@@ -3,3 +3,4 @@ bin/xray.exe
 bin/*.zip
 .tmp/
 node_modules/
+dist/

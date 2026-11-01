@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>2Xray</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <img src="icons/icon48.png" width="30" height="30" alt="" />
+        <div class="brand-text">
+          <h1>2Xray</h1>
+          <p id="subtitle">Xray 浏览器代理</p>
+        </div>
+      </div>
+      <label class="switch" title="开启 / 关闭浏览器代理">
+        <input type="checkbox" id="power" aria-label="开启或关闭代理" />
+        <span class="track"><span class="thumb"></span></span>
+      </label>
+    </header>
+
+    <div id="banner" class="banner hidden" role="status"></div>
+
+    <main>
+      <section class="card">
+        <div class="card-head">
+          <span class="card-title">① 连接状态</span>
+          <span class="pill" id="pill"><i class="dot"></i><span id="pill-text">读取中…</span></span>
+        </div>
+        <div class="kv"><span>本地入站</span><b class="mono" id="endpoint">—</b></div>
+        <div class="kv"><span>分流模式</span><b id="mode-label">—</b></div>
+        <div class="kv"><span>延迟</span><b id="latency">—</b></div>
+        <div class="kv"><span>出口 IP</span><b id="exit">—</b></div>
+        <div class="kv"><span>最近检测</span><b id="checked">—</b></div>
+        <div class="error hidden" id="status-error"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <span class="card-title">② 当前节点</span>
+          <button class="link" id="open-options" type="button">导入 / 更换</button>
+        </div>
+        <div class="profile">
+          <canvas id="qr" class="qr" width="112" height="112" aria-label="节点二维码"></canvas>
+          <div class="profile-body">
+            <div class="name" id="profile-name">未导入 VLESS 链接</div>
+            <div class="server mono" id="profile-server">—</div>
+            <div class="chips" id="profile-chips"></div>
+            <button class="btn ghost small" id="copy-link" type="button" disabled>复制链接</button>
+          </div>
+        </div>
+        <p class="hint" id="profile-hint">导入后可在设置页生成 Xray 配置、扫码迁移。</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <span class="card-title">③ 路由与日志</span>
+          <span class="counts" id="counts">—</span>
+        </div>
+        <label class="field">
+          <span>分流模式</span>
+          <select id="mode-select">
+            <option value="global">全局代理</option>
+            <option value="whitelist">白名单模式</option>
+            <option value="cn-direct">CN 直连</option>
+          </select>
+        </label>
+        <div class="log" id="log"></div>
+        <div class="actions">
+          <button class="btn" id="probe" type="button">立即测试</button>
+          <button class="btn primary" id="options" type="button">设置</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span id="version">v—</span>
+      <span>扩展只接管 Chrome 流量</span>
+    </footer>
+
+    <script src="vendor/qrcode.js"></script>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

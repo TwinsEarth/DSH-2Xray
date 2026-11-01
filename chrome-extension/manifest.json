@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "2Xray — Xray 浏览器代理",
+  "short_name": "2Xray",
+  "version": "0.7.0",
+  "description": "把 Chrome 流量接到本地 Xray/VLESS 入站：一键代理、PAC 分流、VLESS 扫码导入、Xray 配置生成。",
+  "minimum_chrome_version": "116",
+  "homepage_url": "https://github.com/TwinsEarth/DSH-2Xray",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkL0oiOl+OutaUljjCTLie5A7rBNgD662bKlyfjz/fAkyoZ1dsTOSZbJOPg6FHm4lC0aOv3VCYH7hi9IzyZhHAbVner/Rq7h+8i6cDg6n9p7evbYd+FGlsY7SYRr+TRIgZ0rjQJgp56hafoDPAZOMz8FScNq0bQQypSJONnopHjjJxPQ0NzUdDAWorSBnRoNCvOqtrVC/k7ziUnFC4T/LE6YKTyyPcIfGFKGmaOdxHTevDxYw8dhbNR5xSuxfHA/fydQm7MwF6grPiolksArCH8QwxVRh8re6yPMqm7Gy/Dm7UnN+gEA92aHrtnW8apKD1QkTa+IZxa+vZDQwHMQv+wIDAQAB",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "2Xray",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "proxy",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://www.google.com/*",
+    "https://www.gstatic.com/*",
+    "https://ipinfo.io/*",
+    "https://api.ipify.org/*"
+  ],
+  "commands": {
+    "toggle-proxy": {
+      "suggested_key": {
+        "default": "Alt+Shift+X",
+        "mac": "Alt+Shift+X"
+      },
+      "description": "开启/关闭 2Xray 浏览器代理"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

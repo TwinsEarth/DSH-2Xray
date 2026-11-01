@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>2Xray 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <img src="icons/icon128.png" width="40" height="40" alt="" />
+        <div>
+          <h1>2Xray 设置</h1>
+          <p id="status-line">读取中…</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#connection">连接</a>
+        <a href="#routing">路由</a>
+        <a href="#profile">节点</a>
+        <a href="#config">Xray 配置</a>
+        <a href="#data">数据</a>
+        <a href="#about">关于</a>
+      </nav>
+      <div class="top-actions">
+        <span id="save-state" class="save-state"></span>
+        <button class="btn primary" id="save" type="button">保存设置</button>
+      </div>
+    </header>
+
+    <div id="banner" class="banner hidden" role="status"></div>
+
+    <main>
+      <section id="connection" class="card">
+        <div class="card-head">
+          <h2>代理连接</h2>
+          <span class="tag" id="proxy-level">—</span>
+        </div>
+        <p class="lead">扩展把 Chrome 的代理指向本地 Xray 入站。默认值与 DSH-2Xray 插件一致：<code>127.0.0.1:20808</code>。</p>
+        <div class="grid three">
+          <label class="field">
+            <span>协议</span>
+            <select id="proxy-protocol">
+              <option value="http">HTTP（推荐）</option>
+              <option value="socks">SOCKS5</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>地址</span>
+            <input id="proxy-host" type="text" spellcheck="false" placeholder="127.0.0.1" />
+          </label>
+          <label class="field">
+            <span>端口</span>
+            <input id="proxy-port" type="number" min="1" max="65535" step="1" />
+          </label>
+        </div>
+        <p class="hint">端点预览：<code id="endpoint-preview">—</code>。改端口后需要同步修改 Xray 内核的 inbound，或使用下方生成的配置重启内核。</p>
+      </section>
+
+      <section id="routing" class="card">
+        <div class="card-head">
+          <h2>路由分流</h2>
+          <span class="tag" id="routing-summary">—</span>
+        </div>
+        <p class="lead">浏览器侧用 PAC 分流；Xray 内核侧的分流仍由内核配置决定，两者可以叠加。</p>
+        <div class="modes" role="radiogroup" aria-label="分流模式">
+          <label class="mode">
+            <input type="radio" name="mode" value="global" id="mode-global" />
+            <span class="mode-body">
+              <strong>全局代理</strong>
+              <small>除黑名单 / 内网外，所有流量交给 Xray。</small>
+            </span>
+          </label>
+          <label class="mode">
+            <input type="radio" name="mode" value="whitelist" id="mode-whitelist" />
+            <span class="mode-body">
+              <strong>白名单模式</strong>
+              <small>只有白名单域名走代理，其余直连。</small>
+            </span>
+          </label>
+          <label class="mode">
+            <input type="radio" name="mode" value="cn-direct" id="mode-cn-direct" />
+            <span class="mode-body">
+              <strong>CN 直连</strong>
+              <small>.cn 与内置常见国内站点直连，其余走代理。</small>
+            </span>
+          </label>
+        </div>
+        <div class="grid two">
+          <label class="field">
+            <span>白名单（whitelist 模式生效，每行一个）</span>
+            <textarea id="whitelist" rows="7" spellcheck="false" placeholder="github.com&#10;google.com"></textarea>
+          </label>
+          <label class="field">
+            <span>黑名单 / 强制直连（优先级最高，每行一个）</span>
+            <textarea id="blacklist" rows="7" spellcheck="false" placeholder="deepseek.com&#10;registry.npmjs.org"></textarea>
+          </label>
+        </div>
+        <label class="field">
+          <span>内网 / 后缀直连（每行一个，可写裸标签，如 <code>lan</code> 匹配 <code>printer.lan</code>）</span>
+          <textarea id="bypass" rows="3" spellcheck="false"></textarea>
+        </label>
+        <p class="hint">条目支持完整 URL、<code>*.example.com</code> 与裸域名；保存时会归一化为小写主机名并去重。黑名单永远直连，白名单与它重叠时以黑名单为准。</p>
+        <p class="hint warn">PAC 无法读取 geoip/geosite：CN 直连是“.cn + 内置常见站点”的近似。需要完整分流时，请让 Xray 内核使用 cn-direct 路由（DSH-2Xray 已支持），浏览器侧保持全局即可。</p>
+      </section>
+
+      <section id="profile" class="card">
+        <div class="card-head">
+          <h2>VLESS 节点</h2>
+          <span class="tag" id="profile-tag">未导入</span>
+        </div>
+        <p class="lead">粘贴标准 <code>vless://</code> 分享链接（与二维码内容一致），或从二维码图片 / 摄像头导入。</p>
+        <label class="field">
+          <span>分享链接</span>
+          <textarea id="share-link" rows="3" spellcheck="false" placeholder="vless://uuid@host:443?security=reality&sni=...&pbk=...&sid=...&flow=xtls-rprx-vision#节点名"></textarea>
+        </label>
+        <div class="row">
+          <button class="btn primary" id="import-link" type="button">解析并保存</button>
+          <button class="btn" id="clear-link" type="button">清空节点</button>
+          <button class="btn" id="copy-link" type="button">复制链接</button>
+          <label class="btn file-btn" for="qr-file">从二维码图片导入</label>
+          <input id="qr-file" type="file" accept="image/*" hidden />
+          <button class="btn" id="camera-start" type="button">摄像头扫码</button>
+          <button class="btn" id="camera-stop" type="button" hidden>停止扫描</button>
+        </div>
+        <div id="scan-status" class="scan-status"></div>
+        <div class="profile">
+          <canvas id="qr" width="240" height="240" class="qr" aria-label="节点二维码"></canvas>
+          <div class="profile-info">
+            <dl id="node-facts" class="facts">
+              <div><dt>名称</dt><dd id="node-name">—</dd></div>
+              <div><dt>地址</dt><dd id="node-address" class="mono">—</dd></div>
+              <div><dt>安全</dt><dd id="node-security">—</dd></div>
+              <div><dt>SNI</dt><dd id="node-sni" class="mono">—</dd></div>
+              <div><dt>流控</dt><dd id="node-flow" class="mono">—</dd></div>
+              <div><dt>指纹</dt><dd id="node-fp" class="mono">—</dd></div>
+              <div><dt>UUID</dt><dd id="node-uuid" class="mono">—</dd></div>
+              <div><dt>shortId</dt><dd id="node-sid" class="mono">—</dd></div>
+            </dl>
+            <p class="hint">二维码可直接用手机客户端扫描导入；扩展只保存本地，不上传任何节点信息。</p>
+          </div>
+        </div>
+        <video id="video" class="video" playsinline muted hidden></video>
+      </section>
+
+      <section id="config" class="card">
+        <div class="card-head">
+          <h2>Xray 配置生成</h2>
+          <span class="tag" id="config-tag">—</span>
+        </div>
+        <p class="lead">
+          根据当前节点、入站和路由生成一份独立的 xray-core 客户端配置，可用于 DSH-2Xray 之外的 Xray 进程。
+          生成后执行 <code id="run-command">xray run -c config.json</code>。
+        </p>
+        <div class="row">
+          <button class="btn primary" id="generate-config" type="button">生成配置</button>
+          <button class="btn" id="download-config" type="button">下载 config.json</button>
+          <button class="btn" id="copy-config" type="button">复制 JSON</button>
+        </div>
+        <p class="hint" id="config-hint">尚未生成。</p>
+        <pre id="config-preview" class="code" hidden></pre>
+      </section>
+
+      <section id="data" class="card">
+        <div class="card-head">
+          <h2>探测与数据</h2>
+          <span class="tag">本地存储</span>
+        </div>
+        <div class="grid two">
+          <label class="field">
+            <span>探测超时（毫秒）</span>
+            <input id="probe-timeout" type="number" min="1000" max="30000" step="500" />
+          </label>
+          <label class="field">
+            <span>自动探测间隔（分钟）</span>
+            <input id="probe-interval" type="number" min="1" max="60" step="1" />
+          </label>
+        </div>
+        <p class="hint">探测地址固定为 <code>https://www.google.com/generate_204</code> 与 <code>https://ipinfo.io/json</code>（备用 <code>api.ipify.org</code>），避免扩展申请全站权限。</p>
+        <div class="row">
+          <button class="btn" id="export-settings" type="button">导出设置</button>
+          <label class="btn file-btn" for="import-settings">导入设置</label>
+          <input id="import-settings" type="file" accept="application/json,.json" hidden />
+          <button class="btn danger" id="reset" type="button">恢复默认</button>
+        </div>
+        <p class="hint warn">导出文件包含 VLESS 链接与 UUID，请按密钥保管；导入会覆盖代理、路由、探测设置，并尝试导入文件里的节点。</p>
+      </section>
+
+      <section id="about" class="card">
+        <div class="card-head">
+          <h2>关于与权限</h2>
+          <span class="tag" id="version-tag">v—</span>
+        </div>
+        <ul class="about-list">
+          <li><strong>定位</strong>：DSH-2Xray 的浏览器伴侣。扩展负责 Chrome 代理、PAC 分流、VLESS 扫码导入与配置生成；Xray 进程仍由 DSH-2Xray、v2rayN 等程序提供。</li>
+          <li><strong>权限</strong>：<code>proxy</code> 设置代理；<code>storage</code> 保存设置；<code>alarms</code> 定时探测；<code>host_permissions</code> 仅用于 Google 204、ipinfo、ipify 三个探测域名。摄像头扫码不申请清单权限，由浏览器在首次使用时弹窗授权。</li>
+          <li><strong>隐私</strong>：不读取网页内容，不上传设置或节点，不加载远程代码；所有代码随扩展打包。</li>
+          <li><strong>限制</strong>：扩展不能启动/停止本机进程，也不能接管系统全局流量；系统级代理/TUN 请使用 DSH-2Xray 的 TUN 模式或系统代理。</li>
+          <li><strong>内核配置</strong>：修改节点后，需要让 Xray 使用新配置（用本页生成并重启内核，或回到 DSH-2Xray 插件更新）。</li>
+          <li><strong>扩展 ID</strong>：<code id="extension-id">—</code>（固定 ID，便于跨路径保留设置）。</li>
+        </ul>
+        <p class="hint">项目主页：<a href="https://github.com/TwinsEarth/DSH-2Xray" target="_blank" rel="noreferrer noopener">github.com/TwinsEarth/DSH-2Xray</a> · MIT License · 二维码编码 qrcode.js (MIT)、解码 jsQR (Apache-2.0)</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>2Xray for Chrome · 扩展只接管 Chrome 流量，内核由本地 Xray 提供</span>
+    </footer>
+
+    <script src="vendor/qrcode.js"></script>
+    <script src="vendor/jsQR.js"></script>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

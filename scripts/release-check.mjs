@@ -7,7 +7,7 @@
  * Exit 0 = all checks pass. Every check is printed as JSON so the release
  * evidence can quote it verbatim.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -32,6 +32,31 @@ const readme = readFileSync(join(ROOT, 'README.md'), 'utf8')
 check('README title is DSH-2Xray', readme.startsWith('# DSH-2Xray'), readme.split('\n')[0])
 const changelog = readFileSync(join(ROOT, 'CHANGELOG.md'), 'utf8')
 check('CHANGELOG has this version', changelog.includes(`## ${pkg.version}`), pkg.version)
+
+// ---- dual release: plugin + Chrome extension -----------------------------
+const extensionManifestPath = join(ROOT, 'chrome-extension', 'manifest.json')
+const extensionManifest = existsSync(extensionManifestPath)
+  ? JSON.parse(readFileSync(extensionManifestPath, 'utf8'))
+  : null
+check('chrome extension manifest exists', Boolean(extensionManifest), 'chrome-extension/manifest.json')
+check('chrome extension is MV3', extensionManifest?.manifest_version === 3, String(extensionManifest?.manifest_version))
+check(
+  'chrome extension version matches package',
+  extensionManifest?.version === pkg.version,
+  `${extensionManifest?.version ?? '(missing)'} vs ${pkg.version}`,
+)
+check(
+  'chrome extension carries a stable key',
+  typeof extensionManifest?.key === 'string' && extensionManifest.key.length > 100,
+  extensionManifest?.key ? `${extensionManifest.key.length} base64 chars` : '(missing)',
+)
+const marketIndex = JSON.parse(readFileSync(join(ROOT, 'market', 'index.json'), 'utf8'))
+const marketVersions = (marketIndex.plugins ?? []).flatMap((plugin) => plugin.versions ?? []).map((entry) => entry.version)
+check(
+  'market index lists this version',
+  marketVersions.includes(pkg.version),
+  `${pkg.version} in ${marketVersions.join(', ') || '(none)'}`,
+)
 
 // ---- allow-list ----------------------------------------------------------
 const allow = readFileSync(join(ROOT, 'release', 'allow-list.txt'), 'utf8')

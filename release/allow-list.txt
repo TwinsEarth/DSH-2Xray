@@ -18,3 +18,4 @@ examples/*.json
 scripts/*.mjs
 test/*.js
 market/*
+chrome-extension/**

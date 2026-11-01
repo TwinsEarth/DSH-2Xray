@@ -16,8 +16,8 @@
         "zh": "DSH-2Xray"
       },
       "description": {
-        "en": "Xray-core supervisor and router for DSH: VLESS import, global/cn-direct/whitelist routing, three-card panel, update and geodata refresh.",
-        "zh": "DSH 的 Xray 受管内核与路由器：VLESS 导入、全局/国内直连/白名单分流、三卡片面板、更新与规则数据自动更新。"
+        "en": "Xray-core supervisor and router for DSH plus a companion Chrome extension: VLESS import, global/cn-direct/whitelist routing, three-card panel, PAC proxy, QR import and config generation.",
+        "zh": "DSH 的 Xray 受管内核与路由器，附 Chrome 浏览器伴侣：VLESS 导入、全局/国内直连/白名单分流、三卡片面板、PAC 代理、扫码导入与配置生成。"
       },
       "author": "TwinsEarth",
       "homepage": "https://github.com/TwinsEarth/DSH-2Xray",
@@ -26,6 +26,17 @@
       },
       "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjExMTUiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNCIvPjxlbGxpcHNlIGN4PSIzMiIgY3k9IjMyIiByeD0iMTAiIHJ5PSIyNCIvPjxwYXRoIGQ9Ik04IDMyaDQ4TTEyIDIwaDQwTTEyIDQ0aDQwIi8+PC9zdmc+",
       "versions": [
+        {
+          "version": "0.7.0",
+          "publishTimestamp": 1793569001,
+          "source": {
+            "type": "npm",
+            "registry": "https://registry.npmjs.org"
+          },
+          "engines": {
+            "dsh": ">=0.2.0"
+          }
+        },
         {
           "version": "0.6.0",
           "publishTimestamp": 1793421121,

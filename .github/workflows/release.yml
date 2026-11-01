@@ -21,6 +21,8 @@ jobs:
         run: node --test test/*.test.js
       - name: release self-check
         run: node scripts/release-check.mjs
+      - name: build Chrome extension
+        run: node scripts/build-extension.mjs
       - name: publish to npm (skip when the version already exists)
         run: |
           NAME=$(node -p "require('./package.json').name")
@@ -42,11 +44,12 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: pack and checksum
+      - name: pack npm, healthz and checksum
         run: |
           mkdir -p dist
           npm pack --pack-destination dist
-          cd dist && sha256sum *.tgz > SHA256SUMS
+          node -e "const fs=require('fs');const p=require('./package.json');fs.writeFileSync('dist/healthz.json', JSON.stringify({ok:true,service:p.name,version:'v'+p.version,releasedAt:new Date().toISOString()},null,2)+'\n')"
+          cd dist && sha256sum *.tgz *.zip healthz.json > SHA256SUMS
       - name: GitHub release
         uses: softprops/action-gh-release@v2
         with:

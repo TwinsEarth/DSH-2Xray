@@ -1,6 +1,6 @@
 {
   "name": "@twinsearth/dsh-2xray",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": false,
   "description": "DSH-2Xray: supervises xray-core and routes DSH process-wide HTTP(S) traffic through its local inbound, with optional multi-node gRPC control plane",
   "type": "module",
@@ -28,11 +28,13 @@
     "examples/*.json",
     "scripts/*.mjs",
     "test/*.js",
-    "tools/*"
+    "tools/*",
+    "chrome-extension/**"
   ],
   "scripts": {
     "test": "node --test --test-isolation=none test/*.test.js",
-    "check": "node scripts/release-check.mjs"
+    "check": "node scripts/release-check.mjs",
+    "build:extension": "node scripts/build-extension.mjs"
   },
   "engines": {
     "node": ">=22"
