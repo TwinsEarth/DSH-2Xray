@@ -79,7 +79,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          TGZ=$(ls dist/twinsearth-dsh-2xray-*.tgz | head -1)
+          TGZ=$(realpath "$(ls dist/twinsearth-dsh-2xray-*.tgz | head -1)")
           test -f "$TGZ"
           if curl -fsS "https://registry.npmjs.org/@twinsearth%2Fdsh-2xray/${VERSION}" >/dev/null 2>&1; then
             echo "npm @twinsearth/dsh-2xray@${VERSION} is already published; verifying only"
