@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 — 2026-11-05
+
+### 二维码导入不再依赖 BarcodeDetector
+
+- DSH 设置页的「本地二维码图片」与「扫描屏幕二维码」改为 **BarcodeDetector → jsQR** 双解码：原生 `BarcodeDetector` 存在时优先使用；不存在（尤其是 Windows Chromium）或原生识别失败时，自动回退到内置 jsQR。
+- jsQR（Apache-2.0，256 KB）随 `lib/client.js` 打包，设置页无需打开外部 `tools/scanner.html`，图片和屏幕共享扫码都能直接识别。
+- 新增 `test/qr-fallback.test.js`：用仓库内 QR 编码器生成二维码栅格，再由内置 jsQR 解码，验证无 `BarcodeDetector` 的路径。
+- 单测 199/199；Chrome 扩展、`tools/scanner.html` 行为不变。
+
+### 兼容性
+
+- DSH >= 0.2.2-rc.1；Node >= 24.9.0；Chrome >= 116。
+
 ## 0.7.3 — 2026-11-05
 
 ### 全面适配 DSH 0.2.2-rc.1
