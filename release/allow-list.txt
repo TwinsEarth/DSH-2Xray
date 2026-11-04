@@ -1,6 +1,7 @@
 index.js
 package.json
 cordis.patch.yml
+.gitattributes
 lib/*.js
 lib/control/*.js
 locale/*.json
@@ -17,6 +18,8 @@ docs/*.md
 examples/*.json
 scripts/*.mjs
 test/*.js
+test/compat/*.js
+test/compat/*.mjs
 market/*
 chrome-extension/**
 standalone/**

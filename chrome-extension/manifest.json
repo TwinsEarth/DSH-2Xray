@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "2Xray — Xray 浏览器代理",
   "short_name": "2Xray",
-  "version": "0.7.0",
+  "version": "0.7.3",
   "description": "把 Chrome 流量接到本地 Xray/VLESS 入站：一键代理、PAC 分流、VLESS 扫码导入、Xray 配置生成。",
   "minimum_chrome_version": "116",
   "homepage_url": "https://github.com/TwinsEarth/DSH-2Xray",

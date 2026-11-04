@@ -4,19 +4,36 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+env:
+  TZ: UTC
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        node: [22, 24]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [24]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: unit tests
+      # DSH runs tests with process isolation; the local sandbox needs the
+      # in-process mode. Run both so a green CI proves both.
+      - name: unit tests (process isolation)
         run: node --test test/*.test.js
+      - name: unit tests (in-process isolation)
+        run: node --test --test-isolation=none test/*.test.js
+      # These probes import a real DSH 0.2.2-rc.1 tree. The runner has no
+      # desktop app, so they skip cleanly; release evidence runs them locally.
+      - name: DSH 0.2.2 compatibility probes (skip without a DSH tree)
+        run: node --test --test-isolation=none test/compat/*.test.js
       - name: release self-check
         run: node scripts/release-check.mjs
       - name: chrome extension build + checks

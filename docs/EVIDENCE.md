@@ -1,15 +1,19 @@
 # 证据记录（本机实测）
 
 > 目的：把「已验证」与「未验证」分开。下面每条都可用给定命令复跑；无法复跑的结论不写。
+>
+> **0.7.3 更新（2026-11-05）**：对照环境升级为 DSH **0.2.2-rc.1**（Node 24.21.0 / cordis 4.1.0）；单测 **198/198**，新增 `test/compat/` **12/12** 真机探针。文末 E1 的 96/96 是 0.7.0 基线记录，保留作为历史。
+>
+> **注意**：2026-11-05 清理 `E:\GPT\.tmp` 时丢失了部分一次性探针脚本（`.tmp/probe-*.mjs`）。仓库、reports、secrets 与 Release 资产未受影响；本文件引用的临时脚本可按命令重建。
 
 ## 环境
 
 | 项 | 值 |
 |---|---|
-| DSH | 0.2.1-rc.3 桌面版（`E:\DS\DeepSeek Harness.exe`，实现打包在 `app.asar`） |
+| DSH | 0.2.2-rc.1 桌面版（`E:\DS\DeepSeek Harness.exe`，实现打包在 `app.asar`；0.7.0 基线为 0.2.1-rc.3） |
 | 运行时 | Node 24.21.0 / Electron 44.7.0（`ELECTRON_RUN_AS_NODE=1`） |
 | 打包 undici | 8.11.2（`app.asar\dsh\node_modules\undici`） |
-| 本机 xray | 仅 1.4.5（`E:\20221120\BaiduNetdiskDownload\v2rayN-Core\xray.exe`，不支持 REALITY） |
+| 本机 xray | 26.9.30（`C:\Users\fangw\.dsh\xray-proxy\bin\xray.exe`；0.7.0 基线为 1.4.5） |
 
 ## E1 单元测试
 
@@ -18,7 +22,7 @@ cd E:\GPT\dsh-2xray
 node --test --test-isolation=none test/*.test.js
 ```
 
-结果：**96/96 通过**，覆盖：
+结果：**96/96 通过**（0.7.0 基线；0.7.3 为 **198/198** + compat 12/12），覆盖：
 
 - 配置归并/校验（缺字段、flow×security 组合、shortId、base64url 公钥、回环限制、端口冲突、多节点 tag 重复、activeNode 回退、control 端口冲突）
 - xray 配置生成（单节点旧形状、多节点 outbound + balancer、API 入站 / services / stats / routing 首条规则）

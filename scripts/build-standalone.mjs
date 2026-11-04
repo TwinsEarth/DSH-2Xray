@@ -146,9 +146,9 @@ function u32(value) {
 
 function buildZip(entries) {
   const epoch = Number.parseInt(process.env.SOURCE_DATE_EPOCH ?? '', 10)
-  const now = Number.isFinite(epoch) && epoch > 0 ? new Date(epoch * 1000) : new Date(Date.UTC(2026, 10, 1, 0, 0, 0))
-  const time = ((now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2)) & 0xffff
-  const date = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xffff
+  const now = Number.isFinite(epoch) && epoch > 0 ? new Date(epoch * 1000) : new Date()
+  const time = ((now.getUTCHours() << 11) | (now.getUTCMinutes() << 5) | Math.floor(now.getUTCSeconds() / 2)) & 0xffff
+  const date = (((now.getUTCFullYear() - 1980) << 9) | ((now.getUTCMonth() + 1) << 5) | now.getUTCDate()) & 0xffff
   const locals = []
   const centrals = []
   let offset = 0

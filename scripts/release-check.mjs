@@ -57,6 +57,51 @@ check(
   marketVersions.includes(pkg.version),
   `${pkg.version} in ${marketVersions.join(', ') || '(none)'}`,
 )
+const marketLatest = marketIndex.plugins?.[0]?.versions?.[0]
+check(
+  'market latest version matches package',
+  marketLatest?.version === pkg.version,
+  `${marketLatest?.version ?? '(missing)'} vs ${pkg.version}`,
+)
+check(
+  'market engines.dsh matches the DSH 0.2.2-rc.1 target',
+  marketLatest?.engines?.dsh === '>=0.2.2-rc.1',
+  String(marketLatest?.engines?.dsh),
+)
+
+// ---- DSH 0.2.2-rc.1 compatibility gates ---------------------------------
+check('engines.node requires the 0.2.2-rc.1 runtime', pkg.engines?.node === '>=24.9.0', String(pkg.engines?.node))
+check(
+  'schemastery is an optional peer dependency',
+  pkg.peerDependencies?.['@deepseek-ai/schemastery'] === '>=3.18.0 <4' &&
+    pkg.peerDependenciesMeta?.['@deepseek-ai/schemastery']?.optional === true,
+  JSON.stringify(pkg.peerDependencies ?? {}),
+)
+check(
+  'compat probes are shipped in the package',
+  Array.isArray(pkg.files) && pkg.files.some((entry) => entry.startsWith('test/compat/')),
+  (pkg.files ?? []).filter((entry) => entry.includes('compat')).join(', ') || '(missing)',
+)
+for (const probe of ['test/compat/harness.mjs', 'test/compat/host.test.js', 'test/compat/client.test.js']) {
+  check(`compat probe exists: ${probe}`, existsSync(join(ROOT, probe)))
+}
+const gitattributes = existsSync(join(ROOT, '.gitattributes'))
+  ? readFileSync(join(ROOT, '.gitattributes'), 'utf8')
+  : ''
+check('gitattributes pins LF line endings', /^\* text=auto eol=lf$/m.test(gitattributes), gitattributes.split('\n')[0] || '(missing)')
+const hostSource = readFileSync(join(ROOT, 'index.js'), 'utf8')
+check(
+  'healthz route declares requestBody',
+  (hostSource.match(/requestBody:\s*'buffered'/g) ?? []).length >= 4,
+  `${(hostSource.match(/requestBody:\s*'buffered'/g) ?? []).length} routes`,
+)
+if (process.env.GITHUB_REF_NAME?.startsWith('v')) {
+  check(
+    'release tag matches package version',
+    process.env.GITHUB_REF_NAME === `v${pkg.version}`,
+    `${process.env.GITHUB_REF_NAME} vs v${pkg.version}`,
+  )
+}
 
 // ---- allow-list ----------------------------------------------------------
 const allow = readFileSync(join(ROOT, 'release', 'allow-list.txt'), 'utf8')

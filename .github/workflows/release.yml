@@ -8,50 +8,115 @@ permissions:
   contents: write
   id-token: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TZ: UTC
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-      - name: unit tests
+      - name: assert tag matches package version
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match package version v${VERSION}"
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+          echo "releasing v${VERSION} at $(git rev-parse --short HEAD)"
+      # Both test modes: CI process isolation (DSH) and in-process (sandbox).
+      - name: unit tests (process isolation)
         run: node --test test/*.test.js
+      - name: unit tests (in-process isolation)
+        run: node --test --test-isolation=none test/*.test.js
+      - name: DSH 0.2.2 compatibility probes (skip without a DSH tree)
+        run: node --test --test-isolation=none test/compat/*.test.js
       - name: release self-check
         run: node scripts/release-check.mjs
       - name: build Chrome extension
         run: node scripts/build-extension.mjs
-      - name: publish to npm (skip when the version already exists)
+      - name: download and verify Xray core for the standalone bundle
         run: |
-          NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          FOUND=0
-          for attempt in 1 2 3 4 5 6; do
-            if node -e "const n=process.argv[1],v=process.argv[2];fetch('https://registry.npmjs.org/'+encodeURIComponent(n).replace('%40','@')+'/'+v).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" "$NAME" "$VERSION"; then
-              FOUND=1
-              break
-            fi
-            sleep 10
-          done
-          if [ "$FOUND" = "1" ]; then
-            echo "$NAME@$VERSION is already published; skipping npm publish"
-          elif [ -n "$NODE_AUTH_TOKEN" ]; then
-            npm publish --access public
-          else
-            echo "$NAME@$VERSION is not visible on the registry yet and NPM_TOKEN is not configured; skipping this workflow's publish (the version is published out of band)"
+          set -euo pipefail
+          XRAY_VERSION=26.9.30
+          BASE="https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}"
+          mkdir -p /tmp/xray dist/xray-core
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/xray/Xray-windows-64.zip "$BASE/Xray-windows-64.zip"
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/xray/Xray-windows-64.zip.dgst "$BASE/Xray-windows-64.zip.dgst"
+          EXPECTED=$(grep -i 'SHA2-256' /tmp/xray/Xray-windows-64.zip.dgst | head -1 | sed -E 's/^[^:=]+[:=][[:space:]]*//' | tr -d '\r' | awk '{print $1}')
+          ACTUAL=$(sha256sum /tmp/xray/Xray-windows-64.zip | awk '{print $1}')
+          if [ -z "$EXPECTED" ] || [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Xray core checksum mismatch (expected=${EXPECTED:-missing} actual=${ACTUAL})"
+            exit 1
           fi
+          unzip -q /tmp/xray/Xray-windows-64.zip -d dist/xray-core
+          test -f dist/xray-core/xray.exe
+          test -f dist/xray-core/geoip.dat
+          test -f dist/xray-core/geosite.dat
+      - name: build standalone Windows bundle
+        run: node scripts/build-standalone.mjs --core dist/xray-core --skip-extension-build
+      - name: pack npm tarball and healthz asset
+        run: |
+          set -euo pipefail
+          npm pack --pack-destination dist
+          node -e "const fs=require('fs');const p=require('./package.json');fs.writeFileSync('dist/healthz.json', JSON.stringify({ok:true,service:p.name,version:'v'+p.version},null,2)+'\n')"
+          ls -l dist
+      - name: publish npm (fail-closed) and verify registry latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: pack npm, healthz and checksum
         run: |
-          mkdir -p dist
-          npm pack --pack-destination dist
-          node -e "const fs=require('fs');const p=require('./package.json');fs.writeFileSync('dist/healthz.json', JSON.stringify({ok:true,service:p.name,version:'v'+p.version,releasedAt:new Date().toISOString()},null,2)+'\n')"
-          cd dist && sha256sum *.tgz *.zip healthz.json > SHA256SUMS
+          set -euo pipefail
+          TGZ=$(ls dist/twinsearth-dsh-2xray-*.tgz | head -1)
+          test -f "$TGZ"
+          if curl -fsS "https://registry.npmjs.org/@twinsearth%2Fdsh-2xray/${VERSION}" >/dev/null 2>&1; then
+            echo "npm @twinsearth/dsh-2xray@${VERSION} is already published; verifying only"
+          else
+            if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+              echo "::error::NPM_TOKEN is missing and @twinsearth/dsh-2xray@${VERSION} is not published"
+              exit 1
+            fi
+            npm publish "$TGZ" --access public
+          fi
+          VERIFIED=0
+          for attempt in $(seq 1 12); do
+            if node -e "const v=process.argv[1];fetch('https://registry.npmjs.org/@twinsearth%2Fdsh-2xray').then(r=>r.json()).then(j=>process.exit(j['dist-tags']&&j['dist-tags'].latest===v?0:1)).catch(()=>process.exit(1))" "$VERSION"; then
+              VERIFIED=1
+              break
+            fi
+            echo "waiting for dist-tags.latest=${VERSION} (${attempt}/12)"
+            sleep 5
+          done
+          if [ "$VERIFIED" != "1" ]; then
+            echo "::error::registry dist-tags.latest is not ${VERSION}"
+            exit 1
+          fi
+          echo "npm verified: @twinsearth/dsh-2xray@${VERSION} is latest"
+      - name: checksums for every release asset
+        run: |
+          set -euo pipefail
+          cd dist
+          rm -f SHA256SUMS
+          sha256sum twinsearth-dsh-2xray-*.tgz 2xray-chrome-v*.zip 2xray-standalone-win64-v*.zip healthz.json > SHA256SUMS
+          cat SHA256SUMS
       - name: GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            dist/*.tgz
+            dist/*.zip
+            dist/healthz.json
+            dist/SHA256SUMS
           generate_release_notes: true

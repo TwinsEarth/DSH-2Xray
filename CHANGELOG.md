@@ -1,14 +1,39 @@
 # Changelog
 
-## Unreleased
+## 0.7.3 — 2026-11-05
+
+### 全面适配 DSH 0.2.2-rc.1
+
+- 宿主/客户端兼容：对照 DSH 0.2.2-rc.1（cordis 4.1.0、Node 24.21.0、schemastery 3.19.0）逐项验证；`cordis.patch.yml`、`ctx.effect/ctx.inject`、settings schema、client bundle、`connection.fetch`、工具注册、subprocess 均无破坏性变化。
+- `engines.node` 提升到 `>=24.9.0`（0.2.2-rc.1 的实际门槛；桌面内置 24.21.0）。
+- `/api/xray/healthz` 补 `requestBody: 'buffered'`，与另外三条 API 一致。
+- `@deepseek-ai/schemastery` 改为可选 peer（`>=3.18.0 <4`）；schema 不可解析时记录 warning，并按 YAML 配置继续运行。
+- 新增 `test/compat/` 12 项真机探针（真实 cordis 4.1 fiber、dsh-http-proxy、subprocess、client-modules、工具 schema）；本机 12/12 通过；没有 DSH 树时整体 skip。
+- CI：Node 24 × Ubuntu/Windows/macOS；同时运行 process isolation 与 `--test-isolation=none`；新增 compat 探针 lane。
+
+### 发布流程收紧（0.7.0 教训）
+
+- `release.yml`：tag↔版本断言；缺 `NPM_TOKEN` 且版本未发布时 fail-closed；`npm pack` 先于发布；发布后轮询 `dist-tags.latest`；`--provenance`。
+- 可复现产物：`.gitattributes` 固定 LF；扩展/独立版 zip 使用 UTC + `SOURCE_DATE_EPOCH`（tag commit time），同一 tag 两次构建同 SHA。
+- `healthz.json` 冻结为 `{ok, service, version}` 三字段（去掉 `releasedAt`），可与 tag 字节复现。
+- Release 资产固定为：npm tgz、Chrome zip、standalone zip、`healthz.json`、`SHA256SUMS`；standalone 由 CI 下载并校验官方 Xray 后构建，资产可由 tag 派生。
+- `release-check` 增加：tag/版本、engines、可选 peer、compat 探针、`.gitattributes`、healthz `requestBody`、market latest/engines 一致性。
 
 ### 2Xray 独立版（Windows，无需 DSH）
 
-- 新增 `standalone/windows/`：`install.cmd` + `install.ps1`，支持粘贴 VLESS 链接、生成 Xray 配置、复制内核、创建隐藏登录启动项、启动并做 HTTP 204 探测；`uninstall.ps1` 可停止内核并清理。
-- 新增 `scripts/build-standalone.mjs`：把 Xray 26.9.30 官方 Windows 二进制、规则数据、安装脚本和 `2xray-chrome-v0.7.0.zip` 打成 `dist/2xray-standalone-win64-v0.7.0.zip`（约 17.7 MB）。
+- `standalone/windows/`：`install.cmd` + `install.ps1`，支持粘贴 VLESS 链接、生成 Xray 配置、复制内核、创建隐藏登录启动项、启动并做 HTTP 204 探测；`uninstall.ps1` 可停止内核并清理。
+- `scripts/build-standalone.mjs`：把 Xray 26.9.30 官方 Windows 二进制、规则数据、安装脚本和 `2xray-chrome-v0.7.3.zip` 打成 `dist/2xray-standalone-win64-v0.7.3.zip`。
 - 独立版仅监听 `127.0.0.1:20808`，不改系统代理、不安装服务；默认 `cn-direct` 分流，登录启动项可关闭。
 - 第三方许可：Xray-core MPL-2.0 全文与扩展内 qrcode/jsQR 许可写入 `standalone/THIRD-PARTY-NOTICES.txt`。
-- 端到端验证：全新目录安装 → 内核启动 → `HTTP 204` → 扩展解压 23 文件 → 停止/卸载清理。
+
+### 发布修复
+
+- 补发 npm `0.7.0`（此前 GitHub Release 已发但 registry 缺失），随后发布 `0.7.3` 并成为 `latest`；市场 0.7.0/0.7.3 条目均可安装。
+
+### 兼容性
+
+- DSH >= 0.2.2-rc.1；Node >= 24.9.0；Chrome >= 116。
+- 旧 DSH（0.2.1 及以前）请使用 0.7.0。
 
 ## 0.7.0 — 2026-11-02
 

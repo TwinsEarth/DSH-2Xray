@@ -57,6 +57,11 @@ export function apply(ctx, rawConfig) {
     },
     debug: (...args) => baseLogger.debug(...args),
   }
+  if (!Config) {
+    logger.warn(
+      '设置 schema 未加载（@deepseek-ai/schemastery 不可解析）；插件仍按 YAML 配置运行，设置页不会显示表单',
+    )
+  }
   const { config, errors, warnings } = normalizeConfig(rawConfig)
 
   for (const warning of warnings) logger.warn(`配置警告：${warning}`)
@@ -243,6 +248,7 @@ export function apply(ctx, rawConfig) {
             child.connection.fetch.register({
               path: '/api/xray/healthz',
               methods: ['GET'],
+              requestBody: 'buffered',
               fetch: () => {
                 const snapshot = supervisor.snapshot()
                 return Response.json({

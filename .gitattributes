@@ -1,0 +1,12 @@
+# Keep text files byte-stable across checkout platforms so release hashes are
+# reproducible. Binaries (icons, wintun.dll, xray.exe) are never converted.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.dll binary
+*.exe binary
+*.zip binary
+*.tgz binary
