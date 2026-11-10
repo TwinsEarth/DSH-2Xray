@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.9.0 — 2026-11-11
+
+### 设置页「保存即生效」——修「2Xray 无法激活启动」
+
+0.8.x 所有可编辑字段都是 Schemastery `volatile`：设置页保存只提交值、不重挂 fiber，而插件只在 apply 时读一次配置。
+于是「在设置页打开启用」不重启 DSH 就永远不生效；就算重启，如果入站端口撞上另一份 xray（典型是独立版 2Xray 占着
+`127.0.0.1:20808`），启动会直接 `failed(port-busy)`，用户看到的就是「无法激活」。0.9.0 把这两条链路一起修好：
+
+- Host 监听 `loader/volatile-update`，用同一份 raw config 重新归一化后应用到运行中的 supervisor：
+  - `启用` 关→开：立即启动 xray（写配置 → 端口探测 → 功能探测 → 接管 dispatcher）；开→关：立即停止并恢复原路由；
+  - 端口 / 节点 / `takeover` / 路由 / 控制面改动：**热重启子进程**，不重启 DSH；
+  - 更新开关、规则数据周期等字段：只刷新状态，不重启。
+- 新增 `xray_start` / `xray_stop` / `xray_restart` 工具；`enabled=false` 时返回可读的 `reason` 与 `hint`，不再静默。
+- `port-busy` 的 detail 带占用进程的 PID 与镜像名（Windows：`netstat -ano` + `tasklist`；macOS：`lsof`；Linux：`ss`），
+  并提示「改 `inbound.port` 保存即生效」。
+- 单测 199 → **208/208**：新增 `test/reload.test.js`（reloadPlan 状态映射、applyConfig 的 start / hot-restart / stop /
+  再次启动、port-busy 占用者诊断），更新 tools 与 index 用例。
+
+### 兼容性
+
+- DSH >= 0.2.2-rc.1；Node >= 24.9.0；Chrome >= 116。无破坏性配置变更，0.8.x 的 profile 可直接升级。
+
 ## 0.8.0 — 2026-11-05
 
 ### 二维码导入不再依赖 BarcodeDetector

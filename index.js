@@ -66,15 +66,8 @@ export function apply(ctx, rawConfig) {
 
   for (const warning of warnings) logger.warn(`配置警告：${warning}`)
 
-  // Volatile-only settings writes do not remount the fiber; the value is in the
-  // profile patch and takes effect on the next start or plugin reload.
-  if (typeof ctx.on === 'function') {
-    ctx.on('loader/volatile-update', (paths) => {
-      const changed = Array.isArray(paths) ? paths.join(', ') : String(paths ?? '')
-      logger.info(`设置已保存（${changed}）；重启 DSH 后生效`)
-    })
-  }
-
+  // Volatile settings writes do not remount the fiber, so the new values are
+  // re-applied to the running supervisor below (0.9.0: 保存即生效).
   let dataDir
   try {
     dataDir = resolveDataDir(config)
@@ -98,16 +91,17 @@ export function apply(ctx, rawConfig) {
 
   const launcher = createLazyLauncher(ctx, { logger })
   const route = new RouteManager({ logger })
-  const control =
-    config.control.enabled
+  const createControlClient = (settings) =>
+    settings.control.enabled
       ? new ControlClient({
-          host: config.control.host,
-          port: config.control.port,
-          timeoutMs: config.control.timeoutMs,
-          balancerTag: config.control.balancerTag,
+          host: settings.control.host,
+          port: settings.control.port,
+          timeoutMs: settings.control.timeoutMs,
+          balancerTag: settings.control.balancerTag,
           logger,
         })
       : undefined
+  let control = createControlClient(config)
   const supervisor = new Supervisor({
     config,
     errors,
@@ -150,6 +144,63 @@ export function apply(ctx, rawConfig) {
         updateFlight = null
       })
     return updateFlight
+  }
+
+  // ---- live settings (0.9.0) ----------------------------------------------
+  // Every editable field is `volatile`, so the settings page commits new values
+  // without remounting the fiber. Re-normalizing the same raw config object
+  // yields those values (volatile refs are live); the supervisor then applies
+  // them: the 启用 switch starts/stops xray at once, endpoint changes hot
+  // restart the child, so "保存 → 重启 DSH → 还是没启动" cannot happen anymore.
+  let reloadQueue = Promise.resolve()
+  const applySettings = (changed) => {
+    reloadQueue = reloadQueue
+      .then(async () => {
+        const next = normalizeConfig(rawConfig)
+        for (const warning of next.warnings) logger.warn(`配置警告：${warning}`)
+        let nextDataDir = dataDir
+        try {
+          nextDataDir = resolveDataDir(next.config)
+        } catch (error) {
+          next.errors.push({ field: 'binary.dataDir', message: `无法创建数据目录：${String(error)}` })
+        }
+        if (next.errors.length > 0) {
+          logger.error(
+            `设置已保存但配置无效：${next.errors.map((entry) => `${entry.field}: ${entry.message}`).join('; ')}`,
+          )
+          return
+        }
+        const action = await supervisor.applyConfig(next.config, {
+          dataDir: nextDataDir,
+          errors: next.errors,
+          warnings: next.warnings,
+        })
+        control = createControlClient(next.config)
+        supervisor.setControl(control)
+        monitor.configure({
+          host: next.config.inbound.host,
+          port: next.config.inbound.port,
+          latencyUrl: next.config.functionalProbe.url,
+        })
+        updateState.auto = next.config.updates?.auto === true
+        dataDir = nextDataDir
+        logger.info(`设置已应用（${changed || 'unknown'}；action=${action}）`)
+        if (action === 'start' || action === 'restart') {
+          const snapshot = supervisor.snapshot()
+          logger.info(`xray 状态：state=${snapshot.state}${snapshot.reason ? ` reason=${snapshot.reason}` : ''}`)
+        }
+      })
+      .catch((error) => logger.error(`应用设置失败：${String(error)}`))
+  }
+  if (typeof ctx.on === 'function') {
+    ctx.on('loader/volatile-update', (paths) => {
+      const changed = (Array.isArray(paths) ? paths : [paths])
+        .map((path) => (Array.isArray(path) ? path.join('.') : String(path ?? '')))
+        .filter(Boolean)
+        .join(', ')
+      logger.info(`检测到设置变更（${changed || 'unknown'}），即时应用`)
+      applySettings(changed)
+    })
   }
 
   // Authenticated status/log feed for the browser panel. Optional service: a

@@ -2,6 +2,8 @@
 
 > 目的：把「已验证」与「未验证」分开。下面每条都可用给定命令复跑；无法复跑的结论不写。
 >
+> **0.9.0 更新（2026-11-11）**：设置页保存即生效（`loader/volatile-update` → 重新归一化 → supervisor.applyConfig 热启动/热重启/停止）、新增 `xray_start` / `xray_stop` / `xray_restart` 工具、`port-busy` 附带占用进程 PID/镜像名；单测 **208/208**（新增 `test/reload.test.js`），compat 探针 12/12 保持。
+>
 > **0.8.0 更新（2026-11-05）**：设置页新增 jsQR 兜底（BarcodeDetector 不可用时图片/屏幕扫码仍可用）；单测 **199/199**，compat 探针 **12/12** 保持通过。文末 E1 的 96/96 是 0.7.0 基线记录，保留作为历史。
 >
 > **注意**：2026-11-05 清理 `E:\GPT\.tmp` 时丢失了部分一次性探针脚本（`.tmp/probe-*.mjs`）。仓库、reports、secrets 与 Release 资产未受影响；本文件引用的临时脚本可按命令重建。
