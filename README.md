@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/TwinsEarth/DSH-2Xray/actions/workflows/ci.yml/badge.svg)](https://github.com/TwinsEarth/DSH-2Xray/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@twinsearth/dsh-2xray)](https://www.npmjs.com/package/@twinsearth/dsh-2xray)
+[![DSH](https://img.shields.io/badge/DSH-0.2.2--rc.1-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 [![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 
 一个 DSH bundle 插件，扮演 **xray-core 进程管理者 + 进程内流量路由者** 的双重角色：
 
