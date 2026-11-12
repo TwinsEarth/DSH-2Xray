@@ -88,7 +88,17 @@ jobs:
               echo "::error::NPM_TOKEN is missing and @twinsearth/dsh-2xray@${VERSION} is not published"
               exit 1
             fi
-            npm publish "$TGZ" --access public
+            # Auto-staged publishing (npm's 2FA policy) accepts the PUT but keeps
+            # the version invisible until a human approves it, so a plain retry
+            # reports "Cannot publish over previously staged version".
+            if ! npm publish "$TGZ" --access public 2> publish.err; then
+              if grep -qi 'staged' publish.err; then
+                echo "::error::npm auto-staged @twinsearth/dsh-2xray@${VERSION} and is waiting for 2FA approval; approve it in the npm account, then re-run this workflow (the tarball is rebuilt identically from the tag)"
+              else
+                cat publish.err
+              fi
+              exit 1
+            fi
           fi
           VERIFIED=0
           for attempt in $(seq 1 12); do
