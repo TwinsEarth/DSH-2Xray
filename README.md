@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/TwinsEarth/DSH-2Xray/actions/workflows/ci.yml/badge.svg)](https://github.com/TwinsEarth/DSH-2Xray/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@twinsearth/dsh-2xray)](https://www.npmjs.com/package/@twinsearth/dsh-2xray)
-[![DSH](https://img.shields.io/badge/DSH-0.2.2--rc.1-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-0.2.2--rc.2-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 [![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 
@@ -12,7 +12,9 @@
 2. 在 xray 本地入站**通过真实探测之后**，把 DSH 进程的全局 HTTP(S) 出口接到该入站；
 3. 可选：通过零依赖 gRPC 控制面做多节点运行时切换与流量统计。
 
-> 0.9.0 适配 DSH **0.2.2-rc.1**（Node >= 24.9.0）：设置页「启用/停用」与端口、节点等改动**保存即生效**（不再需要重启 DSH），并新增 `xray_start` / `xray_stop` / `xray_restart` 工具与 `port-busy` 占用进程诊断。DSH 0.2.1 及以前请使用 0.7.0。
+> **1.0.0** 适配 DSH **0.2.2-rc.2**（Node >= 24.9.0）：声明 `engines.dsh: ">=0.2.2-rc.2"`，DSH 在安装/升级/启动前即拒绝不兼容运行时；
+> 对 0.2.2-rc.2 真机树逐项复验 **13/13**（fiber、settings schema、4 条路由、7 个工具、代理策略、subprocess、client bundle 与 4 个 slot）。
+> 配置与 0.9.0 完全一致，升级无需改 profile；DSH 0.2.1 及以前请使用 0.7.0。
 
 ```
 apply(ctx, config)
@@ -185,7 +187,7 @@ bundle 自带的 `cordis.patch.yml` 默认 `enabled: false`，避免安装即报
 
 注意：
 
-- override 只存在于 xray 进程内存，重启后由插件按 `activeNode` 重新钉住；切换结果不写回配置（持久化需要设置页 `ctx.settings`，尚未实现）。
+- override 只存在于 xray 进程内存，重启后由插件按 `activeNode` 重新钉住；切换结果不写回配置（持久化请改 profile patch 的 `activeNode`）。
 - API 入站只绑 `127.0.0.1`，但**无认证**：本机任意进程可查统计或切节点。需要更强隔离时用随机端口，或关闭 `control.enabled` 只保留静态多出站。
 - `stats` 计数器是**自进程启动以来的累计值**，不是速率；速率需要调用方自行差分。
 
@@ -305,14 +307,14 @@ v0.2.0 提供两个入口，互不替代：
 ## 已知限制
 
 1. **builtin/SOCKS 模式不覆盖 `web_fetch`**（它会自建 pinned-IP Agent）。默认 HTTP + harness 模式没有这个缺口。
-2. **没有设置页 UI**：v1 通过 `cordis.patch.yml` 配置。要做表单需走 `ctx.settings` + Schemastery + `configForms`，且可编辑字段必须是 volatile。
+2. **设置页只覆盖常用字段**：`启用`、分享链接、xray 路径、本地端口、`takeover`、功能探测、控制面可在设置页改（保存即生效）；`nodes[]`、`routing.*`、`lifecycle`、`tun` 等高级字段仍需编辑 `cordis.patch.yml`。
 3. **不下载 xray**：插件可以携带 `bin/xray`，但从不联网下载；供应链（版本、哈希、签名）留给发布流程。
 4. **重启会打断在途流**：Windows 上 `taskkill /F` 无法 drain；DSH 会看到 `TRANSPORT` 重试，或干净 FIN 导致的 `STREAM_CLOSED`（默认不重试）。xray `connIdle` 已设为 600s，尽量让 DSH 的 300s 空闲看门狗先触发。
 5. **端口变化会热重启 xray（0.9.0 起）**：设置页改 `inbound.port` 保存后，插件会停旧进程、改端口、重新走就绪/探测/接管；若新端口被占用则 `failed(port-busy)`，detail 给出占用者。
 6. **多实例**：每个 DSH profile 独立端口/配置；没有跨实例锁，端口冲突会明确报 `port-busy`。
 7. **控制面依赖较新 Xray**：`RoutingService` 需要 2024-09 之后的版本；更老的版本只有 `StatsService`。失败时插件不崩溃，但切换工具不可用。
 8. **API 无认证**：只绑回环，但本机任意进程都能调用。高隔离场景请关闭 `control.enabled` 或换随机端口。
-9. **切换不持久化**：`xray_switch_node` 只改进程内 override，重启后回到 `activeNode`；写回配置需要设置页/`ctx.settings`（未实现）。
+9. **切换不持久化**：`xray_switch_node` 只改进程内 balancer override，重启后回到配置里的 `activeNode`；要持久化请改 profile patch 的 `activeNode`。
 
 ## 验证结果（诚实边界）
 
@@ -321,7 +323,7 @@ v0.2.0 提供两个入口，互不替代：
 | 项 | 结果 |
 |---|---|
 | 单元测试 `node --test --test-isolation=none test/*.test.js` | **208/208 通过**（配置校验、单/多节点配置生成、分享链接解析、二进制解析优先级、路由安装/回滚/幂等、状态机启动/崩溃重启/退出码 23/端口占用/停止顺序/启动竞态、**0.9.0 运行时设置应用（start/stop/restart 与 port-busy 占用者）**、protobuf 编解码、gRPC 客户端对 mock h2 服务、工具注册与调用） |
-| DSH 0.2.2-rc.1 compat 探针 `DSH_APP_ROOT=... node --test --test-isolation=none test/compat/*.test.js` | **12/12 通过**（真实 cordis 4.1.0 / dsh-http-proxy / subprocess / client-modules / 工具 schema） |
+| DSH 0.2.2-rc.2 compat 探针 `DSH_APP_ROOT=... node --test --test-isolation=none test/compat/*.test.js` | **13/13 通过**（真实 cordis 4.1.0 / dsh-http-proxy / subprocess / client-modules / schemastery 3.19.0 / 7 个工具 schema / `engines.dsh` 门；0.9.0 为 12/12） |
 | 真实运行时加载（`ELECTRON_RUN_AS_NODE=1 "E:\DS\DeepSeek Harness.exe"`） | 插件入口可导入；`ctx.effect` 注册与 dispose 正常；`state=idle → stopped` |
 | 真实运行时路由探针（`scripts/probe-routing.mjs`） | 通过 `createRequire` 解析到安装目录里的 `@deepseek-ai/dsh-http-proxy`；`installProxyFromEnvironment` 安装成功；`fetch` 实测经假代理（absolute-form 请求行）、回环地址直连（origin-form）、`restore()` 后回到直连（ENOTFOUND） |
 | 工具层解析 | `@deepseek-ai/dsh-tools` 同样从安装目录解析成功，`defineTool` 生成合法参数 schema |
@@ -366,8 +368,8 @@ v0.2.0 提供两个入口，互不替代：
 
 ## 健康检查
 
-- 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v0.9.0", ... }`
-- 发布物（公开、静态）：Release 资产 `healthz.json`，三字段 `{ ok, service, version }`，`version` 与 tag 一致（0.9.0 → `v0.9.0`）。
+- 进程内（需 DSH 会话鉴权）：`GET /api/xray/healthz` → `{ "ok": true, "version": "v1.0.0", ... }`
+- 发布物（公开、静态）：Release 资产 `healthz.json`，三字段 `{ ok, service, version }`，`version` 与 tag 一致（1.0.0 → `v1.0.0`）。
 
 ## DSH 插件市场
 
@@ -455,7 +457,7 @@ node tools/install-xray-core.mjs 26.9.30
 - `vless://` 链接导入、图片/摄像头扫码、生成独立 `config.json`（VLESS + 本地 inbound + 路由）；
 - 黑名单永远直连，默认带 `deepseek.com` 系列与 `registry.npmjs.org`。
 
-安装：`chrome://extensions` → 开发者模式 → 加载已解压的扩展程序 → 选择 `chrome-extension/`（或解压 Release 中的 `2xray-chrome-v0.9.0.zip`）。
+安装：`chrome://extensions` → 开发者模式 → 加载已解压的扩展程序 → 选择 `chrome-extension/`（或解压 Release 中的 `2xray-chrome-v1.0.0.zip`）。
 固定扩展 ID：`jcalgojagadmmjeolgahhmhnmhdkecna`。
 
 > 扩展不能启动/停止 `xray` 进程，也不能接管系统全局流量；内核由本插件、v2rayN 等提供，系统级代理请用 TUN 模式。详见 [chrome-extension/README.md](chrome-extension/README.md)。
@@ -464,14 +466,14 @@ node tools/install-xray-core.mjs 26.9.30
 
 ```powershell
 node --test --test-isolation=none test/extension-*.test.js
-node scripts/build-extension.mjs   # dist/2xray-chrome-v0.9.0.zip
+node scripts/build-extension.mjs   # dist/2xray-chrome-v1.0.0.zip
 ```
 
 ## 独立版（无需 DSH，Windows）
 
 如果用户没有安装 DSH，可以直接使用 **2Xray 独立版**：一个压缩包内含 Xray 内核、配置生成脚本、登录启动项和 Chrome 扩展，安装后浏览器即可走本地 Xray。
 
-- 发布资产：`2xray-standalone-win64-v0.9.0.zip`
+- 发布资产：`2xray-standalone-win64-v1.0.0.zip`
 - 安装：解压 → 双击 `install.cmd` → 粘贴 `vless://` 链接 → 按提示在 `chrome://extensions` 加载安装目录里的 `extension/`
 - 默认：`127.0.0.1:20808`、`cn-direct` 分流、仅监听回环、不改系统代理；可关闭登录启动
 - 管理：安装目录里的 `start.cmd` / `stop.cmd` / `uninstall.cmd`
@@ -481,7 +483,7 @@ node scripts/build-extension.mjs   # dist/2xray-chrome-v0.9.0.zip
 
 ```powershell
 node scripts/build-standalone.mjs --core "$env:USERPROFILE\.dsh\xray-proxy\bin"
-# dist/2xray-standalone-win64-v0.9.0.zip
+# dist/2xray-standalone-win64-v1.0.0.zip
 ```
 
 > macOS/Linux 用户可直接使用同一 Chrome 扩展 + 任意本地 Xray（监听 `127.0.0.1:20808`）；独立的 Unix 安装器尚未打包。

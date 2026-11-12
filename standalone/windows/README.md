@@ -11,7 +11,7 @@
 ## 包内容
 
 ```
-2xray-standalone-win64-v0.9.0/
+2xray-standalone-win64-v1.0.0/
   install.cmd            双击安装（会提示粘贴 vless:// 链接）
   install.ps1            安装逻辑（可带参数静默安装）
   uninstall.cmd          卸载
@@ -20,7 +20,7 @@
     xray.exe             Xray-core 26.9.30（官方 release，未修改）
     geoip.dat
     geosite.dat
-  2xray-chrome-v0.9.0.zip Chrome 扩展（安装时会解压到安装目录\extension）
+  2xray-chrome-v1.0.0.zip Chrome 扩展（安装时会解压到安装目录\extension）
   README.md
   THIRD-PARTY-NOTICES.txt
 ```

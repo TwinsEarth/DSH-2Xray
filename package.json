@@ -1,6 +1,6 @@
 {
   "name": "@twinsearth/dsh-2xray",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "private": false,
   "description": "DSH-2Xray: supervises xray-core and routes DSH process-wide HTTP(S) traffic through its local inbound, with optional multi-node gRPC control plane",
   "type": "module",
@@ -41,7 +41,8 @@
     "build:standalone": "node scripts/build-standalone.mjs"
   },
   "engines": {
-    "node": ">=24.9.0"
+    "node": ">=24.9.0",
+    "dsh": ">=0.2.2-rc.2"
   },
   "license": "MIT",
   "repository": {

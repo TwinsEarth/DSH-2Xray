@@ -1,6 +1,6 @@
 # 2Xray for Chrome
 
-自 **0.7.0** 起与 [DSH-2Xray](https://github.com/TwinsEarth/DSH-2Xray) 同版本发布（双版本）；0.8.0 起与 DSH **0.2.2-rc.1** 对齐。它是 DSH-2Xray 的浏览器伴侣扩展（Manifest V3），把 **Chrome 的流量**接到本地 Xray 的 HTTP/SOCKS 入站，并提供与 DSH 插件一致的三卡片视图、路由分流、VLESS 链接/二维码导入和 Xray 配置生成。
+自 **0.7.0** 起与 [DSH-2Xray](https://github.com/TwinsEarth/DSH-2Xray) 同版本发布（双版本）；**1.0.0** 起与 DSH **0.2.2-rc.2** 对齐。它是 DSH-2Xray 的浏览器伴侣扩展（Manifest V3），把 **Chrome 的流量**接到本地 Xray 的 HTTP/SOCKS 入站，并提供与 DSH 插件一致的三卡片视图、路由分流、VLESS 链接/二维码导入和 Xray 配置生成。
 
 > 扩展只接管 **Chrome 浏览器**的流量。Xray 进程本身仍由 [DSH-2Xray](https://github.com/TwinsEarth/DSH-2Xray) 插件、v2rayN 或其他客户端提供——浏览器扩展没有启动/停止本机进程的权限。
 
@@ -37,7 +37,7 @@ Chrome  ──PAC/fixed proxy──▶  127.0.0.1:20808 (Xray HTTP inbound)
 
 ```bash
 node scripts/build-extension.mjs
-# dist/2xray-chrome-v0.9.0.zip
+# dist/2xray-chrome-v1.0.0.zip
 ```
 
 > Chrome 只能直接加载解压目录；zip 用于备份、审核或转 CRX。若上架 Chrome Web Store，请移除 `manifest.json` 的 `key` 字段，由商店分配身份。
@@ -46,7 +46,7 @@ node scripts/build-extension.mjs
 
 不想安装 DSH / DSH-2Xray 插件时，使用仓库的 **2Xray 独立版**（Windows）：
 
-1. 解压发布资产 `2xray-standalone-win64-v0.9.0.zip`；
+1. 解压发布资产 `2xray-standalone-win64-v1.0.0.zip`；
 2. 双击 `install.cmd`，粘贴 `vless://` 链接；
 3. 安装器会拉起本地 Xray（`127.0.0.1:20808`）、创建可选登录启动项，并把本扩展解压到安装目录 `extension/`；
 4. 在 `chrome://extensions` 加载该目录即可。

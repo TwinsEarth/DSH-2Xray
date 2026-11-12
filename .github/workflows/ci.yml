@@ -30,7 +30,7 @@ jobs:
         run: node --test test/*.test.js
       - name: unit tests (in-process isolation)
         run: node --test --test-isolation=none test/*.test.js
-      # These probes import a real DSH 0.2.2-rc.1 tree. The runner has no
+      # These probes import a real DSH 0.2.2-rc.2 tree. The runner has no
       # desktop app, so they skip cleanly; release evidence runs them locally.
       - name: DSH 0.2.2 compatibility probes (skip without a DSH tree)
         run: node --test --test-isolation=none test/compat/*.test.js

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.0 — 2026-11-12
+
+### 首个稳定版：全面适配 DSH 0.2.2-rc.2
+
+- **声明式 DSH 版本门**：`package.json` 新增 `engines.dsh: ">=0.2.2-rc.2"`。DSH 的 app-boot 与插件管理器会在安装、
+  升级、启动前按该范围拒绝不兼容的运行时（`includePrerelease` 语义），不再靠「装上才发现不能用」；市场索引同步声明同一范围。
+- **对 0.2.2-rc.2 逐项复验**（真实安装树，非 fake ctx）：插件 fiber 挂载/卸载、settings schema（schemastery 3.19.0：
+  `volatile` 路径与默认值）、`cordis.patch.yml` 的 include 应用、`connection.fetch` 四条路由注册与释放、
+  `defineTool` 参数编译（7 个工具）、`dsh-http-proxy` 的 `installProxyFromEnvironment`/`proxyRouteFor`、
+  `ctx.subprocess` 启动规格校验、client bundle 的 `dsh.client` 声明与 4 个 slot、以及 `main` 侧 `engines.dsh` 门。
+  **13/13 compat 探针通过**（rc.1 交付时为 12 项，新增 engines.dsh 门这一项）。
+- 复核 0.2.2-rc.1 → rc.2 的升级指南全部条目：本插件不读取 `pluginManager.listBundles()`/`BundleInfo.updatable`
+  （自己的更新走 npm registry），没有自定义 Client 浮层覆盖可拖动页头（`window-drag-regions` 仅 macOS 且不适用），
+  其余（账号通知、Forge、Session、Terminal、web-search 计费、CUA）均不涉及本插件，无需迁移。
+- 兼容性：DSH >= 0.2.2-rc.2；Node >= 24.9.0；Chrome >= 116。配置与 0.9.0 完全一致，升级无需改 profile。
+- 单测 **208/208**；发布自检全绿。
+
 ## 0.9.0 — 2026-11-11
 
 ### 设置页「保存即生效」——修「2Xray 无法激活启动」

@@ -64,13 +64,18 @@ check(
   `${marketLatest?.version ?? '(missing)'} vs ${pkg.version}`,
 )
 check(
-  'market engines.dsh matches the DSH 0.2.2-rc.1 target',
-  marketLatest?.engines?.dsh === '>=0.2.2-rc.1',
+  'market engines.dsh matches the DSH 0.2.2-rc.2 target',
+  marketLatest?.engines?.dsh === '>=0.2.2-rc.2',
   String(marketLatest?.engines?.dsh),
 )
+check(
+  'package declares the same engines.dsh as the market index',
+  pkg.engines?.dsh === marketLatest?.engines?.dsh,
+  `${String(pkg.engines?.dsh)} vs ${String(marketLatest?.engines?.dsh)}`,
+)
 
-// ---- DSH 0.2.2-rc.1 compatibility gates ---------------------------------
-check('engines.node requires the 0.2.2-rc.1 runtime', pkg.engines?.node === '>=24.9.0', String(pkg.engines?.node))
+// ---- DSH 0.2.2-rc.2 compatibility gates ---------------------------------
+check('engines.node requires the 0.2.2-rc.2 runtime', pkg.engines?.node === '>=24.9.0', String(pkg.engines?.node))
 check(
   'schemastery is an optional peer dependency',
   pkg.peerDependencies?.['@deepseek-ai/schemastery'] === '>=3.18.0 <4' &&

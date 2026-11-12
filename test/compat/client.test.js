@@ -1,6 +1,6 @@
 /**
  * Client-half compatibility probes: the package's `dsh.client` declaration and
- * the browser bundle, checked against the 0.2.2-rc.1 client-module protocol and
+ * the browser bundle, checked against the 0.2.2-rc.2 client-module protocol and
  * against a real cordis Context instead of a hand-rolled fake.
  *
  * Run: node --test test/compat/client.test.js
@@ -66,7 +66,7 @@ function loadBundle() {
   return cachedRegistration
 }
 
-test('the package declares the client protocol 0.2.2-rc.1 reads', { skip }, async (t) => {
+test('the package declares the client protocol 0.2.2-rc.2 reads', { skip }, async (t) => {
   const declaration = pkg.dsh?.client
   t.diagnostic(`dsh.client: ${JSON.stringify(declaration)}`)
   assert.ok(declaration, 'package.json carries no dsh.client declaration')

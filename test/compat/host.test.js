@@ -3,9 +3,9 @@
  * the harness modules of the *installed* DSH build, not against a fake ctx.
  *
  * Every fake-ctx unit test in `test/` proves what the plugin expects. These
- * probes prove what 0.2.2-rc.1 actually does — plugin lifecycle, the settings
- * schema, the profile patch format, tool registration, the process-global proxy
- * policy, and the subprocess launch spec.
+ * probes prove what 0.2.2-rc.2 actually does — plugin lifecycle, the settings
+ * schema, the profile patch format, the declared DSH version gate, tool
+ * registration, the process-global proxy policy, and the subprocess launch spec.
  *
  * Run: node --test test/compat/host.test.js
  * They skip when no DSH application tree can be located.
@@ -62,7 +62,24 @@ test('the plugin engine range still admits every runtime the harness starts on',
   )
 })
 
-test('the shipped cordis.patch.yml is a format 0.2.2-rc.1 still applies', { skip }, async (t) => {
+test('the declared DSH requirement admits the running 0.2.2-rc.2 runtime', { skip }, async (t) => {
+  const semver = await importPackage(app, 'semver')
+  const range = pluginPkg.engines?.dsh
+  t.diagnostic(`plugin engines.dsh ${range ?? '(none)'}; running ${app.version}`)
+  assert.equal(typeof range, 'string', 'the plugin must declare engines.dsh so DSH blocks unsupported runtimes')
+  // dsh-app-boot checks `engines.dsh` with includePrerelease: true.
+  assert.ok(
+    semver.satisfies(app.version, range, { includePrerelease: true }),
+    `engines.dsh ${range} rejects the running DSH ${app.version}`,
+  )
+  // The market index publishes the same requirement; a mismatch would let the
+  // market advertise an install the runtime then refuses.
+  const market = readJson('market/index.json')
+  const latest = market.plugins?.[0]?.versions?.[0]
+  assert.equal(latest?.engines?.dsh, range, 'market engines.dsh must match package engines.dsh')
+})
+
+test('the shipped cordis.patch.yml is a format 0.2.2-rc.2 still applies', { skip }, async (t) => {
   const include = await importPackage(app, '@deepseek-ai/cordis-plugin-include')
   const yaml = await importPackage(app, 'yaml')
   const patches = yaml.parse(fs.readFileSync(new URL('cordis.patch.yml', repoRoot), 'utf8'))
@@ -86,14 +103,21 @@ test('the settings schema builds on the harness copy of Schemastery', { skip }, 
     fs.mkdirSync(path.join(pluginDir, 'lib'), { recursive: true })
     fs.copyFileSync(new URL('lib/schema.js', repoRoot), path.join(pluginDir, 'lib', 'schema.js'))
     fs.copyFileSync(new URL('package.json', repoRoot), path.join(pluginDir, 'package.json'))
-    fs.cpSync(
-      path.join(app.modules, '@deepseek-ai', 'schemastery'),
-      path.join(tmp, 'node_modules', '@deepseek-ai', 'schemastery'),
-      { recursive: true },
-    )
+    // Schemastery 3.19 imports `@deepseek-ai/cosmokit` at runtime, so the
+    // synthetic tree needs that transitive dependency too — a profile's package
+    // manager installs it, but this copy is hand-made.
+    for (const dependency of [
+      ['@deepseek-ai', 'schemastery'],
+      ['@deepseek-ai', 'cosmokit'],
+      ['@standard-schema', 'spec'],
+    ]) {
+      const source = path.join(app.modules, ...dependency)
+      if (!fs.existsSync(source)) continue
+      fs.cpSync(source, path.join(tmp, 'node_modules', ...dependency), { recursive: true })
+    }
 
     const { Config } = await import(pathToFileURL(path.join(pluginDir, 'lib', 'schema.js')).href)
-    assert.ok(Config, 'lib/schema.js exported no Config against 0.2.2-rc.1 Schemastery')
+    assert.ok(Config, 'lib/schema.js exported no Config against 0.2.2-rc.2 Schemastery')
 
     // Collect the volatile paths the settings page is allowed to write.
     const volatile = []
@@ -183,9 +207,17 @@ test('the plugin activates on a real cordis 4.1 fiber and tears down cleanly', {
     )
     assert.deepEqual(
       tools.map((tool) => tool.name).sort(),
-      ['xray_stats', 'xray_status', 'xray_switch_node', 'xray_validate_config'],
+      [
+        'xray_restart',
+        'xray_start',
+        'xray_stats',
+        'xray_status',
+        'xray_stop',
+        'xray_switch_node',
+        'xray_validate_config',
+      ],
     )
-    // `defineTool` from 0.2.2-rc.1 compiles the parameter spec; a tool that
+    // `defineTool` from 0.2.2-rc.2 compiles the parameter spec; a tool that
     // reached `register` carries the compiled JSON Schema, not the raw spec.
     for (const tool of tools) {
       assert.equal(tool.parameters?.type, 'object', `${tool.name} parameters were not compiled`)
@@ -193,7 +225,8 @@ test('the plugin activates on a real cordis 4.1 fiber and tears down cleanly', {
     }
 
     // `loader/volatile-update` is the only signal a settings save leaves behind;
-    // the status route's log ring is where the user sees it.
+    // since 0.9.0 the host applies it in place, and the status route's log ring
+    // is where the user sees the change.
     const statusRoute = routes.find((route) => route.path === '/api/xray/status')
     ctx.emit('loader/volatile-update', [['binary', 'path']])
     const response = await statusRoute.fetch(new Request('http://127.0.0.1/api/xray/status?after=0'))
@@ -203,8 +236,8 @@ test('the plugin activates on a real cordis 4.1 fiber and tears down cleanly', {
     assert.equal(typeof body.cursor, 'number')
     t.diagnostic(`status keys: ${Object.keys(body.status).join(', ')}`)
     assert.ok(
-      body.logs.some((line) => JSON.stringify(line).includes('设置已保存')),
-      `no settings-saved line in ${JSON.stringify(body.logs).slice(0, 400)}`,
+      body.logs.some((line) => JSON.stringify(line).includes('设置')),
+      `no settings-applied line in ${JSON.stringify(body.logs).slice(0, 400)}`,
     )
   } finally {
     if (fiber) await fiber.dispose()
@@ -249,7 +282,7 @@ test('the tool parameter dialect still compiles and validates', { skip }, async 
   assert.deepEqual(tools.validateArgs({}, {}), [])
 })
 
-test('the subprocess launch spec passes 0.2.2-rc.1 validation', { skip }, async (t) => {
+test('the subprocess launch spec passes 0.2.2-rc.2 validation', { skip }, async (t) => {
   const libDir = path.join(app.modules, '@deepseek-ai', 'dsh-subprocess-local', 'lib')
   const runnerFile = fs.readdirSync(libDir).find((name) => /^runner-launch-.*\.js$/.test(name))
   assert.ok(runnerFile, 'dsh-subprocess-local no longer ships a runner-launch chunk')

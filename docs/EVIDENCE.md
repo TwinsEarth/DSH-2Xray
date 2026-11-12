@@ -2,6 +2,8 @@
 
 > 目的：把「已验证」与「未验证」分开。下面每条都可用给定命令复跑；无法复跑的结论不写。
 >
+> **1.0.0 更新（2026-11-12）**：全面适配 DSH **0.2.2-rc.2**；新增 `engines.dsh: ">=0.2.2-rc.2"` 版本门；真机（`app.asar` 解包树）compat 探针 **13/13**（新增 engines.dsh 门一项），单测 **208/208**；rc.1→rc.2 升级指南逐条复核，无迁移项。
+>
 > **0.9.0 更新（2026-11-11）**：设置页保存即生效（`loader/volatile-update` → 重新归一化 → supervisor.applyConfig 热启动/热重启/停止）、新增 `xray_start` / `xray_stop` / `xray_restart` 工具、`port-busy` 附带占用进程 PID/镜像名；单测 **208/208**（新增 `test/reload.test.js`），compat 探针 12/12 保持。
 >
 > **0.8.0 更新（2026-11-05）**：设置页新增 jsQR 兜底（BarcodeDetector 不可用时图片/屏幕扫码仍可用）；单测 **199/199**，compat 探针 **12/12** 保持通过。文末 E1 的 96/96 是 0.7.0 基线记录，保留作为历史。
@@ -12,9 +14,10 @@
 
 | 项 | 值 |
 |---|---|
-| DSH | 0.2.2-rc.1 桌面版（`E:\DS\DeepSeek Harness.exe`，实现打包在 `app.asar`；0.7.0 基线为 0.2.1-rc.3） |
+| DSH | 0.2.2-rc.2 桌面版（`E:\DSH\DS\DeepSeek Harness.exe`，实现打包在 `app.asar`；0.7.0 基线为 0.2.1-rc.3） |
 | 运行时 | Node 24.21.0 / Electron 44.7.0（`ELECTRON_RUN_AS_NODE=1`） |
 | 打包 undici | 8.11.2（`app.asar\dsh\node_modules\undici`） |
+| 打包 schemastery / cordis | 3.19.0 / 4.1.0 |
 | 本机 xray | 26.9.30（`C:\Users\fangw\.dsh\xray-proxy\bin\xray.exe`；0.7.0 基线为 1.4.5） |
 
 ## E1 单元测试
@@ -129,7 +132,47 @@ snapshot: {"reachable":false,"lastError":"12: unknown service xray.app.router.co
 - `RoutingService`（`GetBalancerInfo` / `OverrideBalancerTarget`）在 1.4.5 不存在，返回 `UNIMPLEMENTED(12)`。该服务进入主线的时间是 2024-03（PR #3189 一带），因此多节点运行时切换要求 **2024-09 之后的版本（v1.8.24+ / v24.9+）**，并在更老版本上降级为「随机 balancer + 明确诊断」。
 - 多节点配置骨架已被 1.4.5 判为 `Configuration OK.`，见 E5。
 
-## E7 未验证项（必须在目标机执行）
+## E8 DSH 0.2.2-rc.2 兼容探针（1.0.0）
+
+真实安装树（从 `app.asar` 解包，不经 fake ctx）：
+
+```powershell
+node tools/extract-dsh-app.mjs --asar "E:\DSH\DS\resources\app.asar" --out "$env:TEMP\dsh-2xray-compat"
+$env:DSH_APP_ROOT="$env:TEMP\dsh-2xray-compat"
+node --test --test-isolation=none test/compat/host.test.js test/compat/client.test.js
+```
+
+结果：**13/13 通过**，`harness @deepseek-ai/dsh 0.2.2-rc.2`。逐项：
+
+| # | 探针 | 断言的真实行为 |
+|---|---|---|
+| 1 | 0.2 线目标 | 被测树版本满足 `^0.2.` |
+| 2 | node 引擎 | 插件 `engines.node` 不松于 DSH 的 `>=24.9.0` |
+| 3 | **engines.dsh 门**（1.0.0 新增） | `engines.dsh` 在 `includePrerelease` 下接受 0.2.2-rc.2；市场索引声明同一范围 |
+| 4 | `cordis.patch.yml` | cordis-plugin-include 应用后恰为 1 行，`id=xray-proxy`、`name` 等于包名、`config={enabled:false}` |
+| 5 | settings schema | schemastery 3.19.0 构建 `Config`；16 个 `volatile` 路径（含嵌套 `binary.path`）；空配置归一为默认值 |
+| 6 | 真实 fiber | 真 cordis 4.1.0 上挂载、注册 **4 条** `connection.fetch` 路由与 **7 个**工具；`loader/volatile-update` 即时应用并在日志环留下记录；dispose 后 4 条路由全部释放 |
+| 7 | 代理策略 | `installProxyFromEnvironment` 安装 → `proxyRouteFor(sentinel)` 返回该代理；`restore()` 后不再代理 |
+| 8 | 工具参数方言 | `validateArgs` 接受合法参数、拒绝缺必填 |
+| 9 | 子进程规格 | `dsh-subprocess-local` 的启动规格校验接受 `lib/process.js` 的形状，拒绝 `graceMs:0`/空 `argv`；`spawn`/`resolveExecutable` 仍在 |
+| 10 | client 声明 | `dsh.client={platform:'web',inject:[@deepseek-ai/dsh-client-locale]}`；注入的模块确实是 web client 模块 |
+| 11 | 浏览器 bundle | `__ModuleLoader__.load` 恰好注册 1 个模块，id 为包名 |
+| 12 | client 插件 | 在真 cordis Context 上 `inject=['slots']`，注册 `sidebar.panellist`/`main`/`settings.section`/`plugins.item` 四个 slot，`PANEL_ID=xray` |
+| 13 | UI slot 存续 | 四个 slot 名仍出现在 0.2.2-rc.2 的 sidebar / settings-general / plugin-manager / settings 客户端包里 |
+
+### 0.2.2-rc.1 → rc.2 升级指南复核
+
+逐条读过 `docs/upgrade-guide/v0.2.2-rc.1/` 的 21 项，与本插件相关的判断：
+
+| 条目 | 是否影响本插件 | 依据 |
+|---|---|---|
+| `plugin-update-method`（`BundleInfo.update`） | 否 | 插件不读 `listBundles()`/`BundleInfo`；自更新走 npm registry + tarball 校验（`lib/update.js`） |
+| `window-drag-regions` | 否（macOS 专属） | 插件没有覆盖可拖动页头的自定义浮层；slot 内容位于面板体内 |
+| 账号通知 / Forge / Session / Terminal / web-search 计费 / CUA | 否 | 插件不调用这些服务、不注册这些 slot、不读这些持久化数据 |
+
+结论：rc.2 对本插件 **无破坏性变更**，1.0.0 只需声明版本门并复验。
+
+## E9 未验证项（必须在目标机执行）
 
 | 项 | 为什么没做 | 复跑方式 |
 |---|---|---|
